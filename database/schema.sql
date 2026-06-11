@@ -53,7 +53,8 @@ create table road_segments (
     id                  uuid primary key default gen_random_uuid(),
     name                text        not null,                 -- ex.: "Ponte do Branco"
     rural_line          text        not null,                 -- ex.: "Linha C-65"
-    geometry            geometry(LineString, 4326),           -- traçado do trecho (WGS84)
+    geometry            geometry(LineString, 4326),           -- traçado do trecho (WGS84, p/ PostGIS)
+    coordinates         jsonb,                                -- mesmo traçado em [[lon,lat], ...] p/ a API/mapa
     latitude            double precision not null,            -- ponto representativo (marcador)
     longitude           double precision not null,
     slope               numeric(5,2)  not null default 0,     -- declividade média (%)

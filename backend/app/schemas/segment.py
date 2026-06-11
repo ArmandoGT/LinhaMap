@@ -57,3 +57,18 @@ class SegmentOut(SegmentBase):
     # GeoJSON LineString para o mapa: {"type": "LineString", "coordinates": [[lon, lat], ...]}
     geometry: dict | None = None
     updated_at: datetime | None = None
+
+
+class SegmentDetail(SegmentOut):
+    """
+    Detalhe do trecho para o painel lateral (Seção 6.2): inclui recomendações
+    de ação e o detalhamento dos fatores que compõem o score (transparência).
+    """
+    recommendations: list[str] = []
+    factors: list[dict] = []
+
+
+class RecalculateResult(BaseModel):
+    """Resumo do reprocessamento de scores (POST /segments/recalculate)."""
+    updated: int
+    message: str

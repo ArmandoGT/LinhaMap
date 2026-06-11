@@ -90,6 +90,10 @@ values
  0, 21.0, 'baixo',
  'Risco baixo: condições estáveis, chuva acumulada de 18 mm e previsão de 28 mm. Sem relatos recentes; trafegabilidade normal.');
 
+-- Popula `coordinates` (formato API/mapa) a partir da geometria PostGIS.
+update road_segments
+set coordinates = (ST_AsGeoJSON(geometry)::jsonb -> 'coordinates');
+
 -- ===========================================================================
 -- 2) REPORTS — denúncias de exemplo (alimentam dashboard e contagem de relatos)
 -- ===========================================================================

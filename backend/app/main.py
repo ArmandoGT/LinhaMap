@@ -68,13 +68,12 @@ def create_app() -> FastAPI:
             ai_classification=settings.ai_enabled,
         )
 
-    # --- Routers de domínio (adicionados nas próximas etapas) ---------------
-    # from .routes import segments, reports, dashboard, ai, worker
-    # app.include_router(segments.router)
-    # app.include_router(reports.router)
-    # app.include_router(dashboard.router)
-    # app.include_router(ai.router)
-    # app.include_router(worker.router)
+    # --- Routers de domínio -------------------------------------------------
+    from .routes import reports, segments
+
+    app.include_router(segments.router)
+    app.include_router(reports.router)
+    # Próximas etapas: dashboard (6), ai (5), worker (13).
 
     return app
 
