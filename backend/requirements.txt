@@ -1,0 +1,23 @@
+# ============================================================
+# LinhaMap — Backend (FastAPI) | dependências Python
+# Instale com: pip install -r requirements.txt
+# ============================================================
+
+# --- Framework web / servidor ---
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+
+# --- Validação / configuração ---
+pydantic>=2.6,<3.0
+pydantic-settings>=2.2,<3.0
+python-dotenv>=1.0
+
+# --- Banco de dados (Supabase) ---
+supabase>=2.4,<3.0
+
+# --- Upload de imagens (denúncias) ---
+python-multipart>=0.0.9
+
+# --- Integrações externas (Open-Meteo) e IA (Anthropic Claude) ---
+httpx>=0.27
+anthropic>=0.25
