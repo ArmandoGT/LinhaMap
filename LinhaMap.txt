@@ -1,0 +1,582 @@
+Você é uma IA especialista em desenvolvimento full-stack, arquitetura de software, geoprocessamento, IA aplicada e criação de MVPs para hackathon. Quero que você desenvolva um projeto completo chamado **LinhaMap**, uma **Plataforma Preditiva de Trafegabilidade Rural para Ariquemes/RO**.
+
+## 1. Contexto do projeto
+
+O LinhaMap tem como objetivo prever e monitorar o risco de bloqueio em estradas vicinais de Ariquemes e região. A plataforma deve cruzar previsão meteorológica, chuva acumulada, características da via, declividade, histórico de incidentes e relatos da comunidade para indicar, com até 7 dias de antecedência, quais trechos rurais têm maior probabilidade de se tornarem intransitáveis.
+
+O foco é substituir a manutenção reativa por uma manutenção preventiva, ajudando produtores rurais, cooperativas, transportadoras, piscicultores, pecuaristas e a Secretaria de Obras a tomarem decisões baseadas em dados.
+
+## 2. Problema que o sistema resolve
+
+No período chuvoso, linhas rurais de Ariquemes ficam intransitáveis e comprometem o transporte de leite, peixe, gado, café, hortaliças e insumos. Muitas vezes a manutenção só acontece depois que caminhões atolam ou produtores já tiveram prejuízo.
+
+O sistema deve ajudar a reduzir:
+
+* Perdas de produção perecível;
+* Aumento do custo logístico;
+* Isolamento de propriedades;
+* Falta de dados para decisões públicas de manutenção;
+* Demora na identificação de trechos críticos.
+
+## 3. Público-alvo
+
+Público direto:
+
+* Produtores rurais;
+* Cooperativas;
+* Transportadoras;
+* Piscicultores;
+* Pecuaristas;
+* Moradores de linhas vicinais.
+
+Público indireto:
+
+* Secretaria de Obras;
+* Prefeitura de Ariquemes;
+* Empresas do agronegócio regional;
+* Equipes de manutenção pública.
+
+## 4. Objetivo do MVP
+
+Criar uma plataforma web funcional que classifique trechos rurais em quatro níveis de risco para os próximos 7 dias:
+
+* Baixo;
+* Médio;
+* Alto;
+* Crítico.
+
+A plataforma deve usar dados públicos, dados simulados quando necessário e relatos da comunidade para gerar um **Índice de Trafegabilidade** de 0 a 100 por trecho.
+
+## 5. Stack técnica obrigatória
+
+Desenvolva o projeto usando a seguinte stack:
+
+### Frontend
+
+* Next.js (usando App Router);
+* TypeScript;
+* TailwindCSS;
+* shadcn/ui (para componentes acessíveis, limpos e com visual premium/corporativo);
+* Leaflet para mapa interativo (usando react-leaflet adaptado para SSR);
+* Interface responsiva;
+* Design limpo, moderno, rural-tecnológico;
+* Paleta sugerida:
+
+  * Verde para risco baixo;
+  * Amarelo para risco médio;
+  * Laranja para risco alto;
+  * Vermelho para risco crítico;
+  * Tons neutros para fundo e cards.
+
+### Backend
+
+* FastAPI com Python;
+* Código simples, organizado e bem documentado;
+* Separação em rotas, serviços, modelos e schemas;
+* API REST completa.
+
+### Banco de dados
+
+* Supabase com PostgreSQL;
+* Usar PostGIS se possível para dados geográficos;
+* Criar scripts SQL de estrutura inicial;
+* Criar dados mockados para rodar o projeto no primeiro dia.
+
+### Worker / automação
+
+* Criar estrutura para GitHub Actions com cron diário;
+* O cron deve simular ou executar o reprocessamento dos trechos;
+* Atualizar os scores de risco diariamente.
+
+### IA
+
+Usar IA de forma explicável e prática:
+
+1. Classificação de denúncias por imagem:
+
+   * Receber foto enviada pelo produtor;
+   * Classificar a ocorrência em:
+
+     * Buraco;
+     * Lama;
+     * Erosão;
+     * Ponte danificada;
+     * Atolamento;
+     * Outro.
+   * Retornar também a severidade:
+
+     * Baixa;
+     * Média;
+     * Alta;
+     * Crítica.
+   * A resposta da IA deve seguir formato JSON.
+
+2. Score de risco:
+
+   * Implementar uma regressão ponderada ou fórmula explicável;
+   * Não usar modelo caixa-preta;
+   * O sistema deve explicar por que um trecho recebeu determinado risco.
+
+3. Relatórios:
+
+   * Gerar resumo semanal das ocorrências para a Secretaria;
+   * O resumo pode ser gerado por LLM ou por lógica simples caso não haja chave de API.
+
+## 6. Funcionalidades obrigatórias do MVP
+
+### 6.1 Página inicial
+
+Criar uma landing page simples explicando:
+
+* O que é o LinhaMap;
+* Qual problema resolve;
+* Para quem é;
+* Como funciona;
+* Benefícios para produtores e Secretaria de Obras;
+* Botão para acessar o mapa;
+* Botão para registrar denúncia.
+
+### 6.2 Mapa de risco
+
+Criar uma tela principal com mapa usando Leaflet.
+
+O mapa deve exibir linhas vicinais segmentadas em trechos. Cada trecho deve ter uma cor conforme o nível de risco:
+
+* Verde: baixo;
+* Amarelo: médio;
+* Laranja: alto;
+* Vermelho: crítico.
+
+Ao clicar em um trecho, exibir um painel lateral ou modal com:
+
+* Nome do trecho;
+* Linha vicinal;
+* Nível de risco;
+* Índice de Trafegabilidade de 0 a 100;
+* Previsão de chuva para 7 dias;
+* Chuva acumulada nas últimas 72h;
+* Declividade;
+* Quantidade de relatos recentes;
+* Explicação do score;
+* Recomendações de ação.
+
+### 6.3 Índice de Trafegabilidade
+
+Criar uma função de cálculo do score de 0 a 100.
+
+Sugestão de lógica:
+
+* Quanto maior a chuva prevista, maior o risco;
+* Quanto maior a chuva acumulada em 72h, maior o risco;
+* Quanto maior a declividade, maior o risco;
+* Quanto mais relatos recentes, maior o risco;
+* Quanto maior a severidade das denúncias, maior o risco;
+* O score final deve ser convertido para nível textual:
+
+  * 0 a 24: baixo;
+  * 25 a 49: médio;
+  * 50 a 74: alto;
+  * 75 a 100: crítico.
+
+A função deve retornar também uma explicação textual, por exemplo:
+
+“Risco alto devido à chuva acumulada de 78 mm nas últimas 72h, previsão de chuva intensa para os próximos dias e 3 relatos recentes de lama e atolamento.”
+
+### 6.4 Cadastro de denúncia colaborativa
+
+Criar uma tela/formulário onde o produtor possa enviar uma ocorrência.
+
+Campos:
+
+* Nome do produtor ou morador;
+* Telefone ou WhatsApp;
+* Linha vicinal;
+* Localização GPS;
+* Descrição do problema;
+* Upload de foto;
+* Categoria da ocorrência;
+* Severidade;
+* Data e hora;
+* Status:
+
+  * Aberta;
+  * Em análise;
+  * Resolvida.
+
+A localização pode ser capturada automaticamente pelo navegador usando geolocation, mas também deve permitir preenchimento manual.
+
+Após o envio, salvar no banco de dados e atualizar o painel de ocorrências.
+
+### 6.5 Classificação automática da denúncia
+
+Criar uma função no backend que receba a imagem e a descrição da denúncia.
+
+Caso exista chave de API de visão, usar IA multimodal para classificar a imagem.
+
+Caso não exista chave de API, criar fallback com regras simples:
+
+* Se descrição contém “lama”, categoria = lama;
+* Se contém “buraco”, categoria = buraco;
+* Se contém “ponte”, categoria = ponte danificada;
+* Se contém “atolou” ou “atolamento”, categoria = atolamento;
+* Se contém “erosão”, categoria = erosão.
+
+Retornar JSON no seguinte formato:
+
+{
+"categoria": "lama",
+"severidade": "alta",
+"confianca": 0.87,
+"justificativa": "A descrição indica acúmulo de lama e dificuldade de passagem."
+}
+
+### 6.6 Dashboard da Secretaria
+
+Criar uma área administrativa com:
+
+* Cards de resumo:
+
+  * Total de trechos monitorados;
+  * Trechos críticos;
+  * Ocorrências abertas;
+  * Ocorrências resolvidas;
+  * Média do índice de trafegabilidade;
+* Lista priorizada de trechos críticos;
+* Mapa de calor das denúncias;
+* Tabela de ocorrências recentes;
+* Filtros por:
+
+  * Linha vicinal;
+  * Nível de risco;
+  * Status da ocorrência;
+  * Categoria;
+  * Período;
+* Botão para exportar CSV;
+* Botão para gerar relatório semanal.
+
+### 6.7 Relatório semanal
+
+Criar endpoint e tela para gerar um relatório da semana com:
+
+* Principais trechos críticos;
+* Quantidade de ocorrências por categoria;
+* Principais regiões afetadas;
+* Recomendações de prioridade;
+* Resumo textual para a Secretaria de Obras.
+
+O relatório deve ser simples, claro e pronto para ser copiado em ata, ofício ou apresentação.
+
+### 6.8 Atualização automática diária
+
+Criar uma rotina de reprocessamento que:
+
+* Busca ou simula previsão de chuva;
+* Atualiza chuva acumulada;
+* Recalcula o score dos trechos;
+* Atualiza os níveis de risco;
+* Registra log da atualização.
+
+Criar também um arquivo de workflow do GitHub Actions para rodar diariamente.
+
+## 7. Dados públicos e simulação
+
+Sempre que possível, deixar preparado para integrar com:
+
+* Open-Meteo para previsão de precipitação;
+* OpenStreetMap para vias e mapas;
+* SRTM para declividade;
+* INMET para dados climáticos.
+
+Mas, para o MVP funcionar imediatamente, criar dados mockados de Ariquemes/RO com trechos como:
+
+* Linha C-65;
+* Linha C-70;
+* Linha C-60;
+* Linha C-75;
+* Linha TB-40;
+* Ramais rurais fictícios.
+
+Cada trecho deve ter:
+
+* ID;
+* Nome;
+* Coordenadas;
+* Linha;
+* Geometria;
+* Chuva prevista;
+* Chuva acumulada;
+* Declividade;
+* Relatos recentes;
+* Score;
+* Nível de risco;
+* Última atualização.
+
+## 8. Estrutura de banco sugerida
+
+Criar tabelas como:
+
+### road_segments
+
+* id;
+* name;
+* rural_line;
+* geometry;
+* latitude;
+* longitude;
+* slope;
+* accumulated_rain_72h;
+* forecast_rain_7d;
+* reports_count;
+* risk_score;
+* risk_level;
+* explanation;
+* updated_at.
+
+### reports
+
+* id;
+* reporter_name;
+* phone;
+* road_segment_id;
+* latitude;
+* longitude;
+* description;
+* image_url;
+* category;
+* severity;
+* confidence;
+* status;
+* created_at;
+* updated_at.
+
+### weather_snapshots
+
+* id;
+* road_segment_id;
+* date;
+* precipitation_forecast;
+* accumulated_rain;
+* source;
+* created_at.
+
+### processing_logs
+
+* id;
+* execution_date;
+* status;
+* message;
+* created_at.
+
+## 9. API obrigatória
+
+Criar endpoints FastAPI:
+
+### Trechos
+
+* GET /segments
+* GET /segments/{id}
+* POST /segments
+* PUT /segments/{id}
+* DELETE /segments/{id}
+* POST /segments/recalculate
+
+### Denúncias
+
+* GET /reports
+* GET /reports/{id}
+* POST /reports
+* PUT /reports/{id}
+* DELETE /reports/{id}
+* PATCH /reports/{id}/status
+
+### Dashboard
+
+* GET /dashboard/summary
+* GET /dashboard/critical-segments
+* GET /dashboard/reports-by-category
+* GET /dashboard/weekly-report
+* GET /dashboard/export-csv
+
+### IA
+
+* POST /ai/classify-report
+* POST /ai/generate-weekly-summary
+
+### Automação
+
+* POST /worker/reprocess-daily
+
+## 10. Regras de negócio
+
+Aplicar as seguintes regras:
+
+1. Todo trecho deve ter score entre 0 e 100.
+2. Todo trecho deve possuir nível de risco baseado no score.
+3. O sistema deve explicar os fatores que mais impactaram o risco.
+4. Denúncias críticas aumentam o risco do trecho.
+5. Denúncias recentes devem pesar mais que denúncias antigas.
+6. Chuva acumulada nas últimas 72h deve ter peso importante.
+7. Previsão de chuva para os próximos 7 dias deve influenciar o alerta preventivo.
+8. A Secretaria deve conseguir visualizar rapidamente quais trechos priorizar.
+9. O produtor deve conseguir registrar ocorrência de forma simples.
+10. O sistema deve funcionar mesmo sem chaves externas de IA, usando dados mockados e fallback.
+
+## 11. Interface visual
+
+Criar uma interface profissional, moderna e adequada para hackathon.
+
+A identidade deve transmitir:
+
+* Tecnologia;
+* Agronegócio;
+* Gestão pública;
+* Prevenção;
+* Confiança;
+* Simplicidade.
+
+Criar as seguintes telas:
+
+1. Landing Page;
+2. Mapa de Risco;
+3. Detalhe do Trecho;
+4. Cadastro de Denúncia;
+5. Dashboard da Secretaria;
+6. Relatórios;
+7. Página de Configurações ou Sobre o Projeto.
+
+## 12. Requisitos de código
+
+O código deve ser:
+
+* Simples;
+* Bem documentado;
+* Com comentários explicativos;
+* Organizado por pastas;
+* Fácil de apresentar em hackathon;
+* Fácil de instalar;
+* Com README completo;
+* Com exemplos de variáveis de ambiente;
+* Com dados seed;
+* Com instruções para rodar frontend e backend.
+
+## 13. Estrutura de pastas esperada
+
+Crie o projeto com estrutura parecida com:
+
+linhamap/
+frontend/
+  src/
+    app/
+      (rotas e pages do Next.js)
+    components/
+      ui/ (componentes do shadcn)
+      map/ (componentes do Leaflet)
+    lib/
+      utils.ts
+    hooks/
+    services/
+  package.json
+  next.config.ts
+  tailwind.config.ts
+  components.json
+
+backend/
+  app/
+    main.py
+    routes/
+    services/
+    models/
+    schemas/
+    database.py
+    config.py
+    seed.py
+  requirements.txt
+  .env.example
+
+database/
+  schema.sql
+  seed.sql
+
+.github/
+  workflows/
+    daily-reprocess.yml
+
+README.md
+
+## 14. README obrigatório
+
+O README deve conter:
+
+* Nome do projeto;
+* Descrição;
+* Problema;
+* Solução;
+* Público-alvo;
+* Funcionalidades;
+* Stack técnica;
+* Como rodar o backend;
+* Como rodar o frontend;
+* Como configurar Supabase;
+* Como configurar variáveis de ambiente;
+* Como funciona o score de risco;
+* Como funciona a classificação por IA;
+* Como funciona o cron diário;
+* Prints ou descrição das telas;
+* Roadmap pós-hackathon;
+* Limitações do MVP;
+* Possíveis melhorias futuras.
+
+## 15. Variáveis de ambiente
+
+Criar arquivo .env.example com:
+
+SUPABASE_URL=
+SUPABASE_KEY=
+DATABASE_URL=
+OPEN_METEO_BASE_URL=https://api.open-meteo.com/v1/forecast
+ANTHROPIC_API_KEY=
+ENABLE_AI_CLASSIFICATION=false
+ENABLE_MOCK_DATA=true
+
+## 16. Entregáveis finais
+
+Ao finalizar, entregue:
+
+1. Código completo do frontend;
+2. Código completo do backend;
+3. Scripts SQL;
+4. Dados mockados;
+5. Workflow do GitHub Actions;
+6. README completo;
+7. Explicação de como rodar;
+8. Explicação da arquitetura;
+9. Sugestão de pitch curto para apresentação;
+10. Lista de melhorias futuras.
+
+## 17. Critérios de aceite
+
+O projeto só estará concluído se:
+
+* O frontend abrir sem erros;
+* O mapa exibir trechos coloridos por risco;
+* O usuário conseguir clicar no trecho e ver detalhes;
+* O usuário conseguir cadastrar denúncia;
+* A denúncia aparecer no dashboard;
+* O score for recalculado;
+* O dashboard mostrar trechos críticos;
+* O CSV puder ser exportado;
+* O relatório semanal puder ser gerado;
+* O README explicar todo o projeto;
+* O código estiver organizado e comentado.
+
+## 18. Instrução de Execução (Plano de Ação)
+Aja como um Arquiteto de Software e Tech Lead experiente. Eu NÃO quero que você gere o código do projeto agora.
+Sua primeira e única tarefa neste momento é analisar todo este contexto e criar um Plano de Ação Sequencial em etapas lógicas e curtas para o desenvolvimento deste MVP.
+O plano deve ser dividido de forma que eu possa te pedir para executar uma etapa por vez nos próximos prompts (ex: Etapa 1: Setup do Supabase e Scripts SQL; Etapa 2: Estrutura do Next.js e rotas principais; Etapa 3: Componente do Mapa, etc.).
+Apenas responda com:
+Uma breve confirmação de que entendeu as regras de negócio e o objetivo do hackathon.
+O Plano de Ação Sequencial em formato de lista (Markdown).
+
+## 19. Arquivos
+LinhaMap = Instruções do Sistema
+Edital Hackathon 2026 = Edital do Hackathon, o desafio que estou enfrentando é o Plataforma Preditiva de Trafegabilidade, o foco é sair ganhador desse Hackathon nesse Projeto
