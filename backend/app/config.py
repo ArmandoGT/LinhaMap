@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     # --- IA (opcional) ---
     anthropic_api_key: str | None = None
     enable_ai_classification: bool = False
+    ai_model_classify: str = "claude-haiku-4-5-20251001"  # multimodal, rápido/barato
+    ai_model_report: str = "claude-sonnet-4-6"            # resumo semanal (texto)
 
     # --- Flags do MVP ---
     enable_mock_data: bool = True

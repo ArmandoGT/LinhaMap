@@ -21,6 +21,7 @@ from ..schemas.report import (
     ReportStatusUpdate,
     ReportUpdate,
 )
+from ..services.ai_classifier import classify_report
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -55,14 +56,22 @@ def create_report(payload: ReportCreate):
     """
     Registra uma nova denúncia e recalcula o trecho afetado.
 
-    Obs.: a classificação automática por IA (categoria/severidade a partir da
-    descrição/imagem) será integrada aqui na Etapa 5. Por ora, usa os valores
-    enviados ou os padrões ('outro'/'media').
+    Se a categoria/severidade não forem enviadas, são preenchidas pela
+    classificação automática (IA multimodal ou fallback por regras — Etapa 5).
     """
     repo = get_repository()
-    data = payload.model_dump(exclude_none=True)
-    if data.get("road_segment_id") is not None:
-        data["road_segment_id"] = str(data["road_segment_id"])
+    data = payload.model_dump(exclude_none=True, mode="json")
+
+    # Classificação automática quando o produtor não informa categoria/severidade.
+    if not data.get("category") or not data.get("severity"):
+        result = classify_report(
+            description=data.get("description"),
+            image_url=data.get("image_url"),
+        )
+        data.setdefault("category", result["categoria"])
+        data.setdefault("severity", result["severidade"])
+        data["confidence"] = result["confianca"]
+
     return repo.create_report(data)
 
 
@@ -70,9 +79,7 @@ def create_report(payload: ReportCreate):
 def update_report(report_id: UUID, payload: ReportUpdate):
     """Atualiza uma denúncia (recalcula o trecho, se vinculado)."""
     repo = get_repository()
-    data = payload.model_dump(exclude_none=True)
-    if data.get("road_segment_id") is not None:
-        data["road_segment_id"] = str(data["road_segment_id"])
+    data = payload.model_dump(exclude_none=True, mode="json")
     report = repo.update_report(str(report_id), data)
     if report is None:
         raise HTTPException(status_code=404, detail="Denúncia não encontrada.")

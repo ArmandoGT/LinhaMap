@@ -69,11 +69,12 @@ def create_app() -> FastAPI:
         )
 
     # --- Routers de domínio -------------------------------------------------
-    from .routes import reports, segments
+    from .routes import ai, reports, segments
 
     app.include_router(segments.router)
     app.include_router(reports.router)
-    # Próximas etapas: dashboard (6), ai (5), worker (13).
+    app.include_router(ai.router)
+    # Próximas etapas: dashboard (6), worker (13).
 
     return app
 
