@@ -68,48 +68,38 @@ textual e recomendações de ação.
 
 | Camada | Tecnologias |
 | --- | --- |
-| Frontend | Next.js (App Router), TypeScript, TailwindCSS, shadcn/ui, Leaflet (react-leaflet) |
-| Backend | FastAPI (Python), API REST |
+| Fullstack | **Next.js (App Router) + TypeScript** — UI e API (Route Handlers) no mesmo projeto |
+| UI | TailwindCSS, shadcn/ui, Leaflet (react-leaflet) |
 | Banco de dados | Supabase (PostgreSQL + PostGIS) |
 | IA | Anthropic Claude (multimodal) com fallback por regras |
-| Automação | GitHub Actions (cron diário) |
+| Automação | Cron diário (Vercel Cron / GitHub Actions) |
+| Deploy | Vercel (deploy único) |
 | Dados públicos | Open-Meteo, OpenStreetMap, SRTM, INMET (preparado para integração) |
+
+> **Arquitetura:** aplicação **100% Next.js**. O backend roda como **Route Handlers**
+> (`app/api/...`) no mesmo deploy do frontend — sem servidor Python separado.
 
 ---
 
 ## 🚀 Como rodar
 
-> _Instruções detalhadas serão completadas conforme backend e frontend forem implementados
-> (Etapas 2 e 7). Estrutura prevista abaixo._
-
 ### Pré-requisitos
 - Node.js 18+
-- Python 3.11+
-- Conta Supabase
+- (Opcional) Conta Supabase — o app roda em **modo mock** sem ela.
 
-### Backend
+### Desenvolvimento
 ```bash
-cd backend
-python -m venv .venv
-# Windows: .venv\Scripts\activate | Linux/Mac: source .venv/bin/activate
-pip install -r requirements.txt
-cp ../.env.example .env   # preencher as variáveis
-uvicorn app.main:app --reload
-```
-
-### Frontend
-```bash
-cd frontend
 npm install
-cp ../.env.example .env.local   # preencher NEXT_PUBLIC_API_BASE_URL
-npm run dev
+cp .env.example .env.local   # ENABLE_MOCK_DATA=true já roda sem Supabase
+npm run dev                  # http://localhost:3000
 ```
 
-### Banco de dados (Supabase)
+### Banco de dados (Supabase) — opcional
 ```bash
-# Executar no SQL Editor do Supabase, nesta ordem:
+# Quando houver um projeto Supabase, executar no SQL Editor, nesta ordem:
 # 1) database/schema.sql   (estrutura das tabelas)
 # 2) database/seed.sql     (dados mockados de Ariquemes)
+# e definir ENABLE_MOCK_DATA=false + as chaves no .env.local
 ```
 
 ---
