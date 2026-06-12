@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "tsx scripts/test-suite.ts",
     "verify": "tsx scripts/verify-core.ts"
   },
   "dependencies": {
