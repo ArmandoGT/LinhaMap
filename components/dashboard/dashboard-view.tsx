@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ClipboardList,
   Download,
   FileText,
   Gauge,
@@ -137,7 +138,12 @@ export function DashboardView({
             Priorize a manutenção preventiva das linhas vicinais de Ariquemes.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/ordens">
+              <ClipboardList /> Ordens de serviço
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <a href={exportCsvUrl} download>
               <Download /> Exportar CSV
@@ -189,6 +195,12 @@ export function DashboardView({
                         {s.risk_score.toFixed(0)}
                       </span>
                       <RiskBadge level={s.risk_level} />
+                      <Link
+                        href={`/ordens?segment=${s.id}`}
+                        className="rounded-md border px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Criar OS
+                      </Link>
                     </div>
                   </li>
                 ))}

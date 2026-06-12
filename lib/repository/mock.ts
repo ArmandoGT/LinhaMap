@@ -11,9 +11,16 @@ import type {
   Report,
   RiskLevel,
   Segment,
+  WorkOrder,
 } from "@/lib/types";
 
-import { type FollowInput, type ReportFilters, type Repository, scoreFields } from "./base";
+import {
+  type FollowInput,
+  type ReportFilters,
+  type Repository,
+  scoreFields,
+  type WorkOrderInput,
+} from "./base";
 
 function uuid(): string {
   return crypto.randomUUID();
@@ -28,6 +35,7 @@ export class MockRepository implements Repository {
   private logs: ProcessingLog[] = [];
   private follows: Follow[] = [];
   private notifications: AppNotification[] = [];
+  private workOrders: WorkOrder[] = [];
 
   constructor() {
     this.segments = structuredClone(MOCK_SEGMENTS);
@@ -234,5 +242,65 @@ export class MockRepository implements Repository {
       b.created_at.localeCompare(a.created_at),
     );
     return structuredClone(rows.slice(0, limit));
+  }
+
+  // --- Ordens de serviço ---
+  async createWorkOrder(data: WorkOrderInput): Promise<WorkOrder> {
+    // Vincula automaticamente as denúncias abertas do trecho (loop de manutenção).
+    let reportIds = data.report_ids ?? [];
+    if (data.segment_id && reportIds.length === 0) {
+      reportIds = this.reportsForSegmentSync(data.segment_id)
+        .filter((r) => r.status !== "resolvida")
+        .map((r) => r.id);
+    }
+    const wo: WorkOrder = {
+      id: uuid(),
+      segment_id: data.segment_id ?? null,
+      title: data.title,
+      status: "agendada",
+      assigned_team: data.assigned_team ?? null,
+      notes: data.notes ?? null,
+      report_ids: reportIds,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    this.workOrders.push(wo);
+    return structuredClone(wo);
+  }
+
+  async listWorkOrders(status?: string): Promise<WorkOrder[]> {
+    const rows = (status ? this.workOrders.filter((w) => w.status === status) : this.workOrders)
+      .slice()
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return structuredClone(rows);
+  }
+
+  async getWorkOrder(id: string): Promise<WorkOrder | null> {
+    const wo = this.workOrders.find((w) => w.id === id);
+    return wo ? structuredClone(wo) : null;
+  }
+
+  async updateWorkOrder(id: string, data: Partial<WorkOrder>): Promise<WorkOrder | null> {
+    const wo = this.workOrders.find((w) => w.id === id);
+    if (!wo) return null;
+    const prevStatus = wo.status;
+    for (const key of ["title", "status", "assigned_team", "notes", "report_ids"] as const) {
+      if (data[key] !== undefined) (wo as unknown as Record<string, unknown>)[key] = data[key];
+    }
+    wo.updated_at = nowIso();
+
+    // Concluir a OS: resolve denúncias vinculadas e baixa o risco do trecho.
+    if (data.status === "concluida" && prevStatus !== "concluida") {
+      for (const rid of wo.report_ids) {
+        const r = this.findReport(rid);
+        if (r) {
+          r.status = "resolvida";
+          r.updated_at = nowIso();
+          if (r.road_segment_id) this.recalcSegment(r.road_segment_id);
+        }
+      }
+      if (wo.segment_id) this.recalcSegment(wo.segment_id);
+    }
+    return structuredClone(wo);
   }
 }

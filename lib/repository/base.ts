@@ -10,6 +10,7 @@ import type {
   ProcessingLog,
   Report,
   Segment,
+  WorkOrder,
 } from "@/lib/types";
 
 export interface ReportFilters {
@@ -23,6 +24,14 @@ export interface FollowInput {
   name?: string | null;
   contact?: string | null;
   channel?: AlertChannel;
+}
+
+export interface WorkOrderInput {
+  segment_id?: string | null;
+  title: string;
+  assigned_team?: string | null;
+  notes?: string | null;
+  report_ids?: string[];
 }
 
 export interface Repository {
@@ -49,21 +58,28 @@ export interface Repository {
   listFollows(segmentId?: string): Promise<Follow[]>;
   removeFollow(id: string): Promise<boolean>;
   listNotifications(limit?: number): Promise<AppNotification[]>;
+  // Ordens de serviço
+  createWorkOrder(data: WorkOrderInput): Promise<WorkOrder>;
+  listWorkOrders(status?: string): Promise<WorkOrder[]>;
+  getWorkOrder(id: string): Promise<WorkOrder | null>;
+  updateWorkOrder(id: string, data: Partial<WorkOrder>): Promise<WorkOrder | null>;
 }
 
 /** Campos do score recalculados pelo motor (compartilhado pelos modos). */
 export function scoreFields(segment: Partial<Segment>, reports: Report[]): Partial<Segment> {
+  // Denúncias resolvidas não pesam mais no risco (ex.: após manutenção/OS).
+  const active = reports.filter((r) => r.status !== "resolvida");
   const result = calculateTrafficIndex({
     accumulatedRain72h: segment.accumulated_rain_72h ?? 0,
     forecastRain7d: segment.forecast_rain_7d ?? 0,
     slope: segment.slope ?? 0,
-    reports,
+    reports: active,
   });
   return {
     risk_score: result.score,
     risk_level: result.level,
     explanation: result.explanation,
-    reports_count: reports.length,
+    reports_count: active.length,
     updated_at: new Date().toISOString(),
   };
 }

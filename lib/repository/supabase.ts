@@ -14,15 +14,23 @@ import type {
   Report,
   RiskLevel,
   Segment,
+  WorkOrder,
 } from "@/lib/types";
 
-import { type FollowInput, type ReportFilters, type Repository, scoreFields } from "./base";
+import {
+  type FollowInput,
+  type ReportFilters,
+  type Repository,
+  scoreFields,
+  type WorkOrderInput,
+} from "./base";
 
 const SEGMENTS = "road_segments";
 const REPORTS = "reports";
 const LOGS = "processing_logs";
 const FOLLOWS = "follows";
 const NOTIFICATIONS = "notifications";
+const WORK_ORDERS = "work_orders";
 
 export class SupabaseRepository implements Repository {
   private db = getSupabaseAdmin();
@@ -199,5 +207,63 @@ export class SupabaseRepository implements Repository {
       .order("created_at", { ascending: false })
       .limit(limit);
     return (data ?? []) as AppNotification[];
+  }
+
+  // --- Ordens de serviço ---
+  async createWorkOrder(data: WorkOrderInput): Promise<WorkOrder> {
+    let reportIds = data.report_ids ?? [];
+    if (data.segment_id && reportIds.length === 0) {
+      const reps = await this.reportsForSegment(data.segment_id);
+      reportIds = reps.filter((r) => r.status !== "resolvida").map((r) => r.id);
+    }
+    const payload = {
+      segment_id: data.segment_id ?? null,
+      title: data.title,
+      status: "agendada",
+      assigned_team: data.assigned_team ?? null,
+      notes: data.notes ?? null,
+      report_ids: reportIds,
+    };
+    const { data: rows, error } = await this.db.from(WORK_ORDERS).insert(payload).select();
+    if (error) throw error;
+    return rows![0] as WorkOrder;
+  }
+
+  async listWorkOrders(status?: string): Promise<WorkOrder[]> {
+    let query = this.db.from(WORK_ORDERS).select("*");
+    if (status) query = query.eq("status", status);
+    const { data } = await query.order("created_at", { ascending: false });
+    return (data ?? []) as WorkOrder[];
+  }
+
+  async getWorkOrder(id: string): Promise<WorkOrder | null> {
+    const { data } = await this.db.from(WORK_ORDERS).select("*").eq("id", id).limit(1);
+    return (data?.[0] as WorkOrder) ?? null;
+  }
+
+  async updateWorkOrder(id: string, data: Partial<WorkOrder>): Promise<WorkOrder | null> {
+    const existing = await this.getWorkOrder(id);
+    if (!existing) return null;
+    const clean: Record<string, unknown> = {};
+    for (const key of ["title", "status", "assigned_team", "notes", "report_ids"] as const) {
+      if (data[key] !== undefined) clean[key] = data[key];
+    }
+    const { data: rows, error } = await this.db
+      .from(WORK_ORDERS)
+      .update(clean)
+      .eq("id", id)
+      .select();
+    if (error) throw error;
+    const wo = rows![0] as WorkOrder;
+
+    if (data.status === "concluida" && existing.status !== "concluida") {
+      for (const rid of wo.report_ids ?? []) {
+        await this.db.from(REPORTS).update({ status: "resolvida" }).eq("id", rid);
+        const rep = await this.getReport(rid);
+        if (rep?.road_segment_id) await this.recalcSegment(rep.road_segment_id);
+      }
+      if (wo.segment_id) await this.recalcSegment(wo.segment_id);
+    }
+    return wo;
   }
 }

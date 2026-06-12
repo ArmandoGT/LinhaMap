@@ -11,6 +11,8 @@ import type {
   ReportStatus,
   Segment,
   SegmentDetail,
+  WorkOrder,
+  WorkOrderStatus,
 } from "@/lib/types";
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
@@ -89,3 +91,20 @@ export const followSegment = (data: {
 }) => http<Follow>("/api/follows", { method: "POST", body: JSON.stringify(data) });
 
 export const getNotifications = () => http<AppNotification[]>("/api/notifications");
+
+// --- Ordens de serviço ---
+export const createWorkOrder = (data: {
+  segment_id?: string | null;
+  title: string;
+  assigned_team?: string | null;
+  notes?: string | null;
+  report_ids?: string[];
+}) => http<WorkOrder>("/api/work-orders", { method: "POST", body: JSON.stringify(data) });
+
+export const getWorkOrders = () => http<WorkOrder[]>("/api/work-orders");
+
+export const updateWorkOrder = (id: string, data: Partial<WorkOrder>) =>
+  http<WorkOrder>(`/api/work-orders/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+
+export const advanceWorkOrder = (id: string, status: WorkOrderStatus) =>
+  updateWorkOrder(id, { status });

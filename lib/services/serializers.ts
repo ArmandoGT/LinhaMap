@@ -19,11 +19,13 @@ export function serializeSegment(segment: Segment): Segment {
 
 /** Versão detalhada (painel lateral): recalcula a análise ao vivo. */
 export function serializeSegmentDetail(segment: Segment, reports: Report[]): SegmentDetail {
+  // Mantém coerência com scoreFields: ignora denúncias resolvidas.
+  const active = reports.filter((r) => r.status !== "resolvida");
   const result = calculateTrafficIndex({
     accumulatedRain72h: segment.accumulated_rain_72h ?? 0,
     forecastRain7d: segment.forecast_rain_7d ?? 0,
     slope: segment.slope ?? 0,
-    reports,
+    reports: active,
   });
   return {
     ...serializeSegment(segment),
