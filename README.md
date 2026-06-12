@@ -20,7 +20,7 @@
 ## 🔗 Links de entrega
 
 - **MVP online:** _a publicar (deploy na Vercel — ver Etapa 17)_
-- **Vídeo de pitch:** _a gravar (roteiro em [`docs/PITCH.md`](./docs/PITCH.md))_
+- **Vídeo de pitch:** _a gravar (roteiro em [`PITCH.md`](./Docs%20-%20MD/PITCH.md))_
 - **Apresentação/slides:** _a preparar_
 
 ---
@@ -192,7 +192,7 @@ redigido por IA, com fallback por lógica simples.
 
 ## ☁️ Deploy (Vercel)
 
-Guia completo passo a passo em **[`docs/DEPLOY.md`](./docs/DEPLOY.md)** (GitHub + Supabase + Vercel).
+Guia completo passo a passo em **[`DEPLOY.md`](./Docs%20-%20MD/DEPLOY.md)** (GitHub + Supabase + Vercel).
 Resumo:
 
 1. Importe o repositório na Vercel.
@@ -203,7 +203,7 @@ Resumo:
 
 ## 🤝 Uso de Inteligência Artificial
 
-Declaração completa em [`docs/DECLARACAO_IA.md`](./docs/DECLARACAO_IA.md) (exigência do edital).
+Declaração completa em [`DECLARACAO_IA.md`](./Docs%20-%20MD/DECLARACAO_IA.md) (exigência do edital).
 
 ## ✔️ Validação
 
