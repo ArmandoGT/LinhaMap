@@ -8,7 +8,7 @@ import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip } from "react-
 import { RISK_COLORS } from "@/lib/risk";
 import type { Segment } from "@/lib/types";
 
-const ARIQUEMES_CENTER: [number, number] = [-9.93, -63.05];
+const ARIQUEMES_CENTER: [number, number] = [-9.88, -63.07];
 
 /**
  * Mapa Leaflet — carregado SOMENTE no cliente (via next/dynamic ssr:false em
@@ -26,7 +26,7 @@ export default function LeafletMap({
   return (
     <MapContainer
       center={ARIQUEMES_CENTER}
-      zoom={11}
+      zoom={10}
       scrollWheelZoom
       className="h-full w-full"
       style={{ background: "#e8eef0" }}
