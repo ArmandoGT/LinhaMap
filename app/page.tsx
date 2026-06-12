@@ -1,31 +1,56 @@
+import Link from "next/link";
+import { MapPin, Megaphone } from "lucide-react";
+
+import { RiskBadge } from "@/components/risk-badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { RISK_LEVELS } from "@/lib/types";
+
 /**
- * Página inicial — placeholder temporário (Etapa 7).
- * Será substituída pela Landing Page completa na Etapa 11.
+ * Página inicial — hero base (Etapa 10).
+ * Será expandida para a Landing Page completa na Etapa 11.
  */
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8 text-center">
-      <span className="rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-foreground">
-        Hackathon IFRO Ariquemes 2026/1
-      </span>
-      <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-        Linha<span className="text-primary">Map</span>
-      </h1>
-      <p className="max-w-xl text-balance text-muted-foreground">
-        Plataforma Preditiva de Trafegabilidade Rural para Ariquemes/RO.
-        Estrutura Next.js inicializada — backend embutido via Route Handlers.
-      </p>
-      <div className="flex items-center gap-3 text-sm">
-        {(["baixo", "medio", "alto", "critico"] as const).map((nivel) => (
-          <span key={nivel} className="flex items-center gap-1.5 capitalize">
-            <span
-              className="h-3 w-3 rounded-full"
-              style={{ backgroundColor: `hsl(var(--risk-${nivel}))` }}
-            />
-            {nivel}
-          </span>
-        ))}
+    <div className="container flex flex-col items-center gap-10 py-20 text-center">
+      <div className="flex flex-col items-center gap-5">
+        <span className="rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-foreground">
+          Hackathon IFRO Ariquemes 2026/1 · Trafegabilidade Rural
+        </span>
+        <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+          Antecipe o bloqueio das estradas vicinais de{" "}
+          <span className="text-primary">Ariquemes</span>
+        </h1>
+        <p className="max-w-xl text-balance text-muted-foreground">
+          O LinhaMap cruza chuva, declividade e relatos da comunidade para prever, com até
+          7 dias de antecedência, quais trechos rurais têm maior risco de ficarem
+          intransitáveis.
+        </p>
       </div>
-    </main>
+
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <Button asChild size="lg">
+          <Link href="/mapa">
+            <MapPin /> Ver mapa de risco
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/denuncia">
+            <Megaphone /> Registrar denúncia
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="w-full max-w-md">
+        <CardContent className="flex flex-wrap items-center justify-center gap-3 p-6">
+          <span className="text-sm font-medium text-muted-foreground">
+            Índice de Trafegabilidade:
+          </span>
+          {RISK_LEVELS.map((level) => (
+            <RiskBadge key={level} level={level} />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
