@@ -32,6 +32,13 @@ sem CORS nem servidor Python separado). A lógica foi **portada para TypeScript*
 - [ ] **Etapa 17** — Deploy Vercel + Supabase real *(requer projeto Supabase + login Vercel)*
 - [x] **Etapa 18** — README final, declaração de IA, pitch
 
+### Funcionalidades extras (fecham o ciclo)
+
+- [x] **Etapa 19** — Melhor janela para escoar (melhor dia dos 7 no painel do trecho)
+- [x] **Etapa 20** — Alertas + seguir trecho (central de notificações; e-mail/WhatsApp simulados)
+- [x] **Etapa 21** — Ordens de serviço (manutenção que resolve denúncias e baixa o risco)
+- [x] **Etapa 22** — Consulta de trajeto A→B (risco agregado + melhor janela do caminho)
+
 ---
 
 ## 🏗️ Estrutura

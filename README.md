@@ -55,6 +55,10 @@ recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a 
 - ✅ Dashboard da Secretaria (cards, mapa de calor, filtros, exportar CSV)
 - ✅ Relatório semanal pronto para ata/ofício
 - ✅ Reprocessamento diário automático (Vercel Cron / GitHub Actions)
+- ✅ **Alertas + "seguir trecho"**: avisa quando um trecho acompanhado piora (central de notificações; e-mail/WhatsApp simulados)
+- ✅ **Melhor janela para escoar**: melhor dia dos próximos 7 para transportar a produção
+- ✅ **Ordens de serviço**: trecho crítico/denúncia → manutenção; concluir resolve denúncias e baixa o risco
+- ✅ **Consulta de trajeto A→B**: risco agregado do caminho (limitado pelo pior trecho) + melhor janela
 - ✅ API REST completa (Route Handlers)
 
 ## 🖥️ Telas
@@ -66,6 +70,9 @@ recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a 
 | **Denúncia** (`/denuncia`) | Formulário com GPS automático, upload de foto e classificação automática por IA. |
 | **Dashboard** (`/dashboard`) | Cards de resumo, trechos prioritários, mapa de calor, tabela filtrável e exportação CSV. |
 | **Relatórios** (`/relatorios`) | Relatório semanal textual + indicadores, com copiar/imprimir. |
+| **Trajeto** (`/trajeto`) | Seleciona os trechos do caminho e mostra a passabilidade do trajeto + melhor janela. |
+| **Ordens** (`/ordens`) | Quadro de ordens de serviço (agendada → em execução → concluída) da Secretaria. |
+| **Alertas** (`/notificacoes`) | Central de notificações dos trechos acompanhados. |
 | **Sobre** (`/sobre`) | Como funcionam o score e a IA, fontes de dados e stack. |
 
 ---

@@ -6,8 +6,16 @@
 - Hackathon IFRO Ariquemes 2026/1, cat. **Empresa e Comunidade**. Prazo repo **19/06/2026 23h59**; culminância 26/06.
 - Stack: **100% Next.js 14 (App Router) + TS + Tailwind 3 + shadcn(new-york) + Leaflet**. Backend = **Route Handlers** (`app/api`). Pivot de FastAPI → TS (FastAPI **deletado**, Etapas 2–6 antigas).
 - **Modo mock por padrão** (`ENABLE_MOCK_DATA=true`). Supabase **adiado** (sem projeto ainda).
-- **17/18 etapas concluídas**. Só falta **Etapa 17 (deploy)** — depende do usuário (criar Supabase + login Vercel).
+- **MVP base (18 etapas) + 4 features extras (19–22) concluídas**. Só falta **Etapa 17 (deploy)** — depende do usuário (criar Supabase + login Vercel).
 - Tudo builda (`npm run build`) e foi verificado por smoke tests de runtime.
+
+## Features extras (Etapas 19–22) — "fecham o ciclo"
+- **19 Melhor janela p/ escoar**: `lib/services/forecast.ts` (computeTravelWindow, travelRating) → barras coloridas + recomendação no painel do trecho.
+- **20 Alertas + seguir trecho**: `lib/services/alerts.ts` (shouldAlert: piora E vira alto/critico), repo follows/notifications, gera alerta no recalc (denúncia/cron); FollowButton no painel, NotificationBell no header, página `/notificacoes`. E-mail/WhatsApp **simulados** (sem custo). Rotas `/api/follows`, `/api/notifications`.
+- **21 Ordens de serviço**: repo work_orders; criar OS de um trecho **auto-anexa denúncias abertas**; concluir → resolve denúncias + recalcula (risco cai). **Scoring agora ignora denúncias resolvidas** (`scoreFields` e `serializeSegmentDetail` filtram status!=='resolvida'). Quadro `/ordens`, rotas `/api/work-orders`. Entradas no dashboard.
+- **22 Trajeto A→B**: `lib/services/route-planner.ts` (pior trecho domina; janela = pior dia entre trechos). Página `/trajeto`, item no nav.
+- Schema: tabelas `follows`, `notifications`, `work_orders` adicionadas a `database/schema.sql` (enums alert_channel, work_order_status). Nav passou a `lg:flex` (7 itens).
+- Gotcha de teste: matar processo na porta 3100 antes de `next start` (servidores sobrepostos causam estado obsoleto/EADDRINUSE).
 
 ## Comandos
 - `npm run dev` (porta 3000) · `npm run build` · `npx next start -p 3100` (prod)
