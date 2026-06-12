@@ -56,3 +56,4 @@ backend/uploads/
 coverage/
 .coverage
 htmlcov/
+./Docs - MD
