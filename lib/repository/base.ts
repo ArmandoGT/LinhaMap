@@ -1,0 +1,50 @@
+/**
+ * Contrato e utilidades compartilhadas do repositório.
+ * (Separado de index.ts para evitar importações circulares entre mock/supabase.)
+ */
+import { calculateTrafficIndex } from "@/lib/services/scoring";
+import type { ProcessingLog, Report, Segment } from "@/lib/types";
+
+export interface ReportFilters {
+  status?: string | null;
+  category?: string | null;
+  road_segment_id?: string | null;
+}
+
+export interface Repository {
+  // Trechos
+  listSegments(): Promise<Segment[]>;
+  getSegment(id: string): Promise<Segment | null>;
+  createSegment(data: Partial<Segment>): Promise<Segment>;
+  updateSegment(id: string, data: Partial<Segment>): Promise<Segment | null>;
+  deleteSegment(id: string): Promise<boolean>;
+  reportsForSegment(id: string): Promise<Report[]>;
+  recalculateAll(): Promise<number>;
+  // Denúncias
+  listReports(filters?: ReportFilters): Promise<Report[]>;
+  getReport(id: string): Promise<Report | null>;
+  createReport(data: Partial<Report>): Promise<Report>;
+  updateReport(id: string, data: Partial<Report>): Promise<Report | null>;
+  deleteReport(id: string): Promise<boolean>;
+  setReportStatus(id: string, status: string): Promise<Report | null>;
+  // Logs
+  addProcessingLog(status: string, message: string): Promise<ProcessingLog>;
+  listProcessingLogs(limit?: number): Promise<ProcessingLog[]>;
+}
+
+/** Campos do score recalculados pelo motor (compartilhado pelos modos). */
+export function scoreFields(segment: Partial<Segment>, reports: Report[]): Partial<Segment> {
+  const result = calculateTrafficIndex({
+    accumulatedRain72h: segment.accumulated_rain_72h ?? 0,
+    forecastRain7d: segment.forecast_rain_7d ?? 0,
+    slope: segment.slope ?? 0,
+    reports,
+  });
+  return {
+    risk_score: result.score,
+    risk_level: result.level,
+    explanation: result.explanation,
+    reports_count: reports.length,
+    updated_at: new Date().toISOString(),
+  };
+}

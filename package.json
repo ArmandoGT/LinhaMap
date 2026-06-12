@@ -7,9 +7,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify": "tsx scripts/verify-core.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "@supabase/supabase-js": "^2.108.1",
     "class-variance-authority": "0.7.0",
     "clsx": "2.1.1",
     "lucide-react": "0.454.0",
@@ -28,6 +31,7 @@
     "eslint-config-next": "^14.2.35",
     "postcss": "8.4.47",
     "tailwindcss": "3.4.14",
+    "tsx": "^4.22.4",
     "typescript": "5.6.3"
   }
 }

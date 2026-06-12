@@ -1,0 +1,127 @@
+/**
+ * Repositório Supabase — porte de SupabaseRepository (repository.py).
+ *
+ * A geometria PostGIS é alimentada via SQL/seed; a API usa a coluna
+ * `coordinates` (jsonb) para o traçado. Será exercitado quando houver um
+ * projeto Supabase (modo real); em desenvolvimento usamos o MockRepository.
+ */
+import { getSupabaseAdmin } from "@/lib/supabase/server";
+import type { ProcessingLog, Report, Segment } from "@/lib/types";
+
+import { type ReportFilters, type Repository, scoreFields } from "./base";
+
+const SEGMENTS = "road_segments";
+const REPORTS = "reports";
+const LOGS = "processing_logs";
+
+export class SupabaseRepository implements Repository {
+  private db = getSupabaseAdmin();
+
+  // --- Trechos ---
+  async listSegments(): Promise<Segment[]> {
+    const { data, error } = await this.db.from(SEGMENTS).select("*");
+    if (error) throw error;
+    return (data ?? []) as Segment[];
+  }
+  async getSegment(id: string): Promise<Segment | null> {
+    const { data } = await this.db.from(SEGMENTS).select("*").eq("id", id).limit(1);
+    return (data?.[0] as Segment) ?? null;
+  }
+  async createSegment(input: Partial<Segment>): Promise<Segment> {
+    const payload = { ...input, ...scoreFields(input, []) };
+    const { data, error } = await this.db.from(SEGMENTS).insert(payload).select();
+    if (error) throw error;
+    return data![0] as Segment;
+  }
+  async updateSegment(id: string, input: Partial<Segment>): Promise<Segment | null> {
+    const existing = await this.getSegment(id);
+    if (!existing) return null;
+    const merged = { ...existing, ...input };
+    const fields = scoreFields(merged, await this.reportsForSegment(id));
+    const { geometry, ...clean } = { ...merged, ...fields } as Record<string, unknown>;
+    const { data, error } = await this.db.from(SEGMENTS).update(clean).eq("id", id).select();
+    if (error) throw error;
+    return (data?.[0] as Segment) ?? null;
+  }
+  async deleteSegment(id: string): Promise<boolean> {
+    const { data, error } = await this.db.from(SEGMENTS).delete().eq("id", id).select();
+    if (error) throw error;
+    return Boolean(data && data.length);
+  }
+  async reportsForSegment(id: string): Promise<Report[]> {
+    const { data } = await this.db.from(REPORTS).select("*").eq("road_segment_id", id);
+    return (data ?? []) as Report[];
+  }
+  async recalculateAll(): Promise<number> {
+    const segments = await this.listSegments();
+    for (const seg of segments) {
+      const fields = scoreFields(seg, await this.reportsForSegment(seg.id));
+      await this.db.from(SEGMENTS).update(fields).eq("id", seg.id);
+    }
+    return segments.length;
+  }
+
+  // --- Denúncias ---
+  async listReports(filters: ReportFilters = {}): Promise<Report[]> {
+    let query = this.db.from(REPORTS).select("*");
+    if (filters.status) query = query.eq("status", filters.status);
+    if (filters.category) query = query.eq("category", filters.category);
+    if (filters.road_segment_id) query = query.eq("road_segment_id", filters.road_segment_id);
+    const { data } = await query.order("created_at", { ascending: false });
+    return (data ?? []) as Report[];
+  }
+  async getReport(id: string): Promise<Report | null> {
+    const { data } = await this.db.from(REPORTS).select("*").eq("id", id).limit(1);
+    return (data?.[0] as Report) ?? null;
+  }
+  async createReport(input: Partial<Report>): Promise<Report> {
+    const { data, error } = await this.db.from(REPORTS).insert(input).select();
+    if (error) throw error;
+    const row = data![0] as Report;
+    if (row.road_segment_id) await this.recalcSegment(row.road_segment_id);
+    return row;
+  }
+  async updateReport(id: string, input: Partial<Report>): Promise<Report | null> {
+    const { data, error } = await this.db.from(REPORTS).update(input).eq("id", id).select();
+    if (error) throw error;
+    const row = (data?.[0] as Report) ?? null;
+    if (row?.road_segment_id) await this.recalcSegment(row.road_segment_id);
+    return row;
+  }
+  async deleteReport(id: string): Promise<boolean> {
+    const existing = await this.getReport(id);
+    const { data, error } = await this.db.from(REPORTS).delete().eq("id", id).select();
+    if (error) throw error;
+    if (existing?.road_segment_id) await this.recalcSegment(existing.road_segment_id);
+    return Boolean(data && data.length);
+  }
+  async setReportStatus(id: string, status: string): Promise<Report | null> {
+    return this.updateReport(id, { status: status as Report["status"] });
+  }
+
+  // --- Logs ---
+  async addProcessingLog(status: string, message: string): Promise<ProcessingLog> {
+    const { data, error } = await this.db
+      .from(LOGS)
+      .insert({ status, message })
+      .select();
+    if (error) throw error;
+    return data![0] as ProcessingLog;
+  }
+  async listProcessingLogs(limit = 20): Promise<ProcessingLog[]> {
+    const { data } = await this.db
+      .from(LOGS)
+      .select("*")
+      .order("execution_date", { ascending: false })
+      .limit(limit);
+    return (data ?? []) as ProcessingLog[];
+  }
+
+  private async recalcSegment(id: string): Promise<void> {
+    const seg = await this.getSegment(id);
+    if (seg) {
+      const fields = scoreFields(seg, await this.reportsForSegment(id));
+      await this.db.from(SEGMENTS).update(fields).eq("id", id);
+    }
+  }
+}
