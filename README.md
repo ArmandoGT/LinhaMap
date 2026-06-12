@@ -3,6 +3,7 @@
 > **Plataforma Preditiva de Trafegabilidade Rural para Ariquemes/RO**
 > Inteligência de dados para prevenção de bloqueios em estradas vicinais.
 
+[![Testes e validação](https://github.com/ArmandoGT/LinhaMap/actions/workflows/tests.yml/badge.svg)](https://github.com/ArmandoGT/LinhaMap/actions/workflows/tests.yml)
 [![Status](https://img.shields.io/badge/status-MVP%20funcional-success)]()
 [![Stack](https://img.shields.io/badge/stack-Next.js%20%2B%20TypeScript-black)]()
 [![Hackathon](https://img.shields.io/badge/Hackathon-IFRO%20Ariquemes%202026%2F1-green)]()
@@ -14,8 +15,8 @@
 - **Curso/Turma:** Tecnologia em Análise e Desenvolvimento de Sistemas (ADS) — IFRO Campus Ariquemes
 - **Categoria:** Desafio Empresa e Comunidade
 - **Desafio:** Plataforma Preditiva de Trafegabilidade (Proponente: QUANYX Tecnologia)
-- **Equipe:** _a preencher_
-- **Integrantes:** _a preencher_
+- **Equipe:** 3 Hacketeers
+- **Integrantes:** Armando Giordani Trassi, Leandro Pires de Moraes Filho e Pedro Felipe Vieira Gouveia
 
 ## 🔗 Links de entrega
 
@@ -129,19 +130,11 @@ npm run dev                  # http://localhost:3000
 npm run build && npm run start
 ```
 
-### Verificação rápida do núcleo
+### Testes automatizados
 ```bash
-npm run verify   # checagens do motor de score, classificação e repositório
+npm test         # suíte por funcionalidade: caminho feliz + erro/valor-limite
+npm run verify   # checagem de paridade do núcleo (score/classificação/repositório)
 ```
-
-## 🧪 Como testar (fluxo principal)
-
-1. Abra a **landing** e clique em **"Ver mapa de risco"**.
-2. No **mapa**, clique em um trecho colorido → veja índice, explicação e recomendações.
-3. Clique em **"Registrar denúncia"**, descreva um problema (ex.: _"muita lama na ponte"_) e envie
-   → a denúncia é **classificada automaticamente** e o risco do trecho é recalculado.
-4. Abra o **Dashboard** → veja cards, mapa de calor e a denúncia na tabela; **exporte o CSV**.
-5. Abra **Relatórios** → gere o **relatório semanal** pronto para ata/ofício.
 
 ---
 
@@ -208,13 +201,66 @@ Resumo:
 
 ---
 
+## 🧪 Testes e validação
+
+> Seção da disciplina **Teste de Software** (Hackathon IFRO Ariquemes 2026/1). A pergunta da
+> banca não é só _"funciona?"_, mas _"como vocês sabem que funciona?"_. Abaixo está a resposta.
+
+### O que significa "funcionar" (oráculo)
+
+O coração do LinhaMap é uma **regra explicável** que converte chuva, declividade e relatos em um
+**Índice de Trafegabilidade (0–100)** e em um **nível de risco**. "Funcionar corretamente" significa:
+
+- o **score é determinístico** e reproduzível pela fórmula ponderada (não é caixa-preta);
+- o **nível segue as faixas fixas**: `0–24 baixo · 25–49 médio · 50–74 alto · 75–100 crítico`;
+- toda classificação de denúncia retorna um **contrato válido** `{ categoria, severidade }`, mesmo
+  sem IA (fallback por regras) — nunca derruba o cadastro;
+- registrar uma denúncia **recalcula** o risco do trecho.
+
+O **oráculo** são esses valores esperados, codificados como asserções em `scripts/test-suite.ts`.
+
+### Plano mínimo de teste
+
+Aplicamos **Análise de Valor-Limite** e **Particionamento de Equivalência** (BSTQB 2023, Cap. 6):
+cobrimos o caminho feliz **e** as bordas/erros das funções críticas.
+
+| Funcionalidade | O que deve acontecer (oráculo) | Caminho feliz (entrada → saída) | Erro / borda (entrada → saída) | Evidência |
+| --- | --- | --- | --- | --- |
+| **Índice de Trafegabilidade** | Score 0–100 e nível pela faixa correta | Ponte do Branco (92mm, 140mm, 8,5%, 2 relatos) → **92 / crítico** | Chuva acumulada **83mm → baixo** e **84mm → médio** (demais fatores nulos); entrada vazia → **0 / baixo**; chuva negativa → saneada (clamp) | `npm test` (F1) |
+| **Classificação da denúncia** | Sempre devolve `{categoria, severidade}` válidos | _"ponte cedendo, grave"_ → **ponte_danificada / crítica** | Texto sem palavra-chave ou vazio/nulo → **"outro"** (degrada com segurança) | `npm test` (F2) |
+| **Recalcular risco ao denunciar** | Denúncia incrementa contagem e recalcula | `createReport` em trecho baixo → **reports_count +1** | Denúncia crítica e recente em trecho baixo → **risco sobe de nível** | `npm test` (F3) |
+
+> **Caso de borda mais importante** (orientação do roteiro para a categoria _Empresa e Comunidade_):
+> mantendo os demais fatores nulos, o trecho cruza de **Baixo para Médio entre 83 mm e 84 mm** de
+> chuva acumulada (score 24,9 → 25,2). Esse limite é testado automaticamente.
+
+### Como executar e evidência
+
+```bash
+npm test         # 15 casos (caminho feliz + erro/valor-limite), com relatório PASS/FAIL
+npm run verify   # checagem de paridade do motor de score
+npx tsc --noEmit # verificação estática de tipos
+```
+
+A suíte roda também em **Integração Contínua** a cada `push`/PR
+([`.github/workflows/tests.yml`](./.github/workflows/tests.yml)); o resultado fica na aba **Actions**
+e no **selo no topo deste README** — essa é a evidência versionada de que a solução funciona.
+
+### Reflexão (Sprint 4)
+
+Ter testes passando **não prova** que o sistema está 100% correto — prova que os comportamentos
+especificados no oráculo se mantêm. Por isso priorizamos os **valores-limite** (onde os defeitos se
+escondem) e a **validação com usuário real** abaixo, e não apenas o caminho feliz.
+
+### Validação com usuários
+
+_Espaço para evidências de validação com produtores/Secretaria/empresa proponente — registrar aqui
+data, participante e retorno (a preencher pela equipe)._
+
 ## 🤝 Uso de Inteligência Artificial
 
-Declaração completa em [`DECLARACAO_IA.md`](./Docs%20-%20MD/DECLARACAO_IA.md) (exigência do edital).
-
-## ✔️ Validação
-
-_Espaço para evidências de validação com usuários/Secretaria/empresa (a preencher pela equipe)._
+Declaração completa em [`DECLARACAO_IA.md`](./Docs%20-%20MD/DECLARACAO_IA.md) (exigência do edital):
+ferramentas usadas, finalidade, partes do projeto apoiadas e o que a equipe revisou/validou.
 
 ---
 
