@@ -20,17 +20,17 @@ sem CORS nem servidor Python separado). A lógica foi **portada para TypeScript*
 - [x] **Etapa 1** — `database/schema.sql` + `seed.sql` (Supabase/PostGIS)
 - [x] ~~Etapas 2–6 (FastAPI)~~ — **removidas**; lógica portada para TS
 - [x] **Etapa 7** — Re-scaffold Next.js (TS + Tailwind + shadcn) + porte de tipos/mock-data
-- [ ] **Etapa 8** — Núcleo de domínio em TS (`lib/services` + `lib/repository`)
-- [ ] **Etapa 9** — Route Handlers REST (`app/api/...`)
-- [ ] **Etapa 10** — Design system + layout
-- [ ] **Etapa 11** — Landing page
-- [ ] **Etapa 12** — Mapa de risco + detalhe do trecho
-- [ ] **Etapa 13** — Cadastro de denúncia
-- [ ] **Etapa 14** — Dashboard da Secretaria
-- [ ] **Etapa 15** — Relatórios + Sobre
-- [ ] **Etapa 16** — Cron diário (worker)
-- [ ] **Etapa 17** — Deploy Vercel + Supabase real
-- [ ] **Etapa 18** — README final, declaração de IA, pitch
+- [x] **Etapa 8** — Núcleo de domínio em TS (`lib/services` + `lib/repository`)
+- [x] **Etapa 9** — Route Handlers REST (`app/api/...`)
+- [x] **Etapa 10** — Design system + layout
+- [x] **Etapa 11** — Landing page
+- [x] **Etapa 12** — Mapa de risco + detalhe do trecho
+- [x] **Etapa 13** — Cadastro de denúncia
+- [x] **Etapa 14** — Dashboard da Secretaria
+- [x] **Etapa 15** — Relatórios + Sobre
+- [x] **Etapa 16** — Cron diário (worker)
+- [ ] **Etapa 17** — Deploy Vercel + Supabase real *(requer projeto Supabase + login Vercel)*
+- [x] **Etapa 18** — README final, declaração de IA, pitch
 
 ---
 
