@@ -12,15 +12,20 @@ create extension if not exists postgis;      -- geometria das vias (LineString)
 create extension if not exists pgcrypto;     -- gen_random_uuid()
 
 -- Limpeza (permite re-execução total) ---------------------------------------
+drop table if exists notifications     cascade;
+drop table if exists follows           cascade;
+drop table if exists work_orders       cascade;
 drop table if exists weather_snapshots cascade;
 drop table if exists reports            cascade;
 drop table if exists processing_logs    cascade;
 drop table if exists road_segments      cascade;
 
-drop type if exists risk_level      cascade;
-drop type if exists report_category cascade;
-drop type if exists report_severity cascade;
-drop type if exists report_status   cascade;
+drop type if exists risk_level        cascade;
+drop type if exists report_category   cascade;
+drop type if exists report_severity   cascade;
+drop type if exists report_status     cascade;
+drop type if exists alert_channel     cascade;
+drop type if exists work_order_status cascade;
 
 -- Tipos enumerados (domínios de negócio) ------------------------------------
 -- Níveis de risco derivados do Índice de Trafegabilidade (0-100).
@@ -34,6 +39,12 @@ create type report_severity as enum ('baixa', 'media', 'alta', 'critica');
 
 -- Ciclo de vida da denúncia.
 create type report_status   as enum ('aberta', 'em_analise', 'resolvida');
+
+-- Canal de entrega de alertas (e-mail/WhatsApp simulados no MVP).
+create type alert_channel   as enum ('in_app', 'email', 'whatsapp');
+
+-- Ciclo de vida de uma ordem de serviço de manutenção.
+create type work_order_status as enum ('agendada', 'em_execucao', 'concluida', 'cancelada');
 
 -- ===========================================================================
 -- Função utilitária: mantém updated_at sempre atualizado em UPDATE
@@ -143,6 +154,64 @@ create table processing_logs (
 comment on table processing_logs is 'Log de cada execução do worker de recálculo de scores (cron diário).';
 
 create index idx_processing_logs_date on processing_logs (execution_date desc);
+
+-- ===========================================================================
+-- Tabela: follows  (inscrições para alertas de um trecho)
+-- ===========================================================================
+create table follows (
+    id              uuid primary key default gen_random_uuid(),
+    road_segment_id uuid references road_segments(id) on delete cascade,
+    segment_id      uuid,                       -- espelho usado pela API (= road_segment_id)
+    name            text,
+    contact         text,                       -- telefone/e-mail (opcional)
+    channel         alert_channel not null default 'in_app',
+    created_at      timestamptz   not null default now()
+);
+
+comment on table follows is 'Inscrições de produtores/moradores para receber alertas de um trecho.';
+create index idx_follows_segment on follows (segment_id);
+
+-- ===========================================================================
+-- Tabela: notifications  (alertas gerados aos seguidores)
+-- ===========================================================================
+create table notifications (
+    id           uuid primary key default gen_random_uuid(),
+    segment_id   uuid,
+    segment_name text,
+    contact      text,
+    channel      alert_channel not null default 'in_app',
+    level        risk_level    not null,
+    message      text          not null,
+    status       text          not null default 'in_app', -- in_app | simulada | enviada
+    created_at   timestamptz   not null default now()
+);
+
+comment on table notifications is 'Notificações geradas quando um trecho seguido piora (e-mail/WhatsApp simulados).';
+create index idx_notifications_created on notifications (created_at desc);
+
+-- ===========================================================================
+-- Tabela: work_orders  (ordens de serviço de manutenção — Secretaria)
+-- ===========================================================================
+create table work_orders (
+    id              uuid primary key default gen_random_uuid(),
+    road_segment_id uuid references road_segments(id) on delete set null,
+    segment_id      uuid,                       -- espelho usado pela API
+    title           text not null,
+    status          work_order_status not null default 'agendada',
+    assigned_team   text,
+    notes           text,
+    report_ids      jsonb not null default '[]'::jsonb,  -- denúncias vinculadas
+    created_at      timestamptz not null default now(),
+    updated_at      timestamptz not null default now()
+);
+
+comment on table work_orders is 'Ordens de serviço de manutenção; ao concluir, resolvem denúncias e reduzem o risco.';
+create index idx_work_orders_segment on work_orders (segment_id);
+create index idx_work_orders_status  on work_orders (status);
+
+create trigger trg_work_orders_updated_at
+    before update on work_orders
+    for each row execute function set_updated_at();
 
 -- ============================================================================
 -- Fim do schema. Próximo passo: executar database/seed.sql

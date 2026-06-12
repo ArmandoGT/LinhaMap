@@ -116,3 +116,59 @@ export function scoreToLevel(score: number): RiskLevel {
   if (score >= 25) return "medio";
   return "baixo";
 }
+
+/** Ordem dos níveis (para detectar piora). */
+export const LEVEL_RANK: Record<RiskLevel, number> = {
+  baixo: 0,
+  medio: 1,
+  alto: 2,
+  critico: 3,
+};
+
+// --- Alertas / Seguir trecho ---
+export const ALERT_CHANNELS = ["in_app", "email", "whatsapp"] as const;
+export type AlertChannel = (typeof ALERT_CHANNELS)[number];
+
+/** Inscrição para receber alertas de um trecho. */
+export interface Follow {
+  id: string;
+  segment_id: string;
+  name: string | null;
+  contact: string | null;
+  channel: AlertChannel;
+  created_at: string;
+}
+
+/** Notificação de alerta gerada para um seguidor. */
+export interface AppNotification {
+  id: string;
+  segment_id: string | null;
+  segment_name: string | null;
+  contact: string | null;
+  channel: AlertChannel;
+  level: RiskLevel;
+  message: string;
+  status: string; // 'in_app' | 'simulada' (e-mail/WhatsApp ainda não enviam de fato)
+  created_at: string;
+}
+
+// --- Ordens de Serviço (manutenção) ---
+export const WORK_ORDER_STATUSES = [
+  "agendada",
+  "em_execucao",
+  "concluida",
+  "cancelada",
+] as const;
+export type WorkOrderStatus = (typeof WORK_ORDER_STATUSES)[number];
+
+export interface WorkOrder {
+  id: string;
+  segment_id: string | null;
+  title: string;
+  status: WorkOrderStatus;
+  assigned_team: string | null;
+  notes: string | null;
+  report_ids: string[];
+  created_at: string;
+  updated_at: string;
+}

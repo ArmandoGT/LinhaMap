@@ -3,7 +3,10 @@
  * Para Server Components, prefira importar os serviços/repositório direto.
  */
 import type {
+  AlertChannel,
+  AppNotification,
   ClassificationResult,
+  Follow,
   Report,
   ReportStatus,
   Segment,
@@ -76,3 +79,13 @@ export const getWeeklyReport = () =>
 
 /** URL para download do CSV (usar em <a href>). */
 export const exportCsvUrl = "/api/dashboard/export-csv";
+
+// --- Alertas / seguir trecho ---
+export const followSegment = (data: {
+  segment_id: string;
+  name?: string | null;
+  contact?: string | null;
+  channel?: AlertChannel;
+}) => http<Follow>("/api/follows", { method: "POST", body: JSON.stringify(data) });
+
+export const getNotifications = () => http<AppNotification[]>("/api/notifications");

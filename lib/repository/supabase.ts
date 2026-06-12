@@ -5,14 +5,24 @@
  * `coordinates` (jsonb) para o traçado. Será exercitado quando houver um
  * projeto Supabase (modo real); em desenvolvimento usamos o MockRepository.
  */
+import { buildAlertMessage, buildFollowMessage, shouldAlert } from "@/lib/services/alerts";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
-import type { ProcessingLog, Report, Segment } from "@/lib/types";
+import type {
+  AppNotification,
+  Follow,
+  ProcessingLog,
+  Report,
+  RiskLevel,
+  Segment,
+} from "@/lib/types";
 
-import { type ReportFilters, type Repository, scoreFields } from "./base";
+import { type FollowInput, type ReportFilters, type Repository, scoreFields } from "./base";
 
 const SEGMENTS = "road_segments";
 const REPORTS = "reports";
 const LOGS = "processing_logs";
+const FOLLOWS = "follows";
+const NOTIFICATIONS = "notifications";
 
 export class SupabaseRepository implements Repository {
   private db = getSupabaseAdmin();
@@ -55,8 +65,10 @@ export class SupabaseRepository implements Repository {
   async recalculateAll(): Promise<number> {
     const segments = await this.listSegments();
     for (const seg of segments) {
+      const prev = seg.risk_level;
       const fields = scoreFields(seg, await this.reportsForSegment(seg.id));
       await this.db.from(SEGMENTS).update(fields).eq("id", seg.id);
+      await this.notifyFollowers({ ...seg, ...fields } as Segment, prev);
     }
     return segments.length;
   }
@@ -119,9 +131,73 @@ export class SupabaseRepository implements Repository {
 
   private async recalcSegment(id: string): Promise<void> {
     const seg = await this.getSegment(id);
+    if (!seg) return;
+    const prev = seg.risk_level;
+    const fields = scoreFields(seg, await this.reportsForSegment(id));
+    await this.db.from(SEGMENTS).update(fields).eq("id", id);
+    await this.notifyFollowers({ ...seg, ...fields } as Segment, prev);
+  }
+
+  // --- Alertas / seguir trecho ---
+  private async notifyFollowers(seg: Segment, prev: RiskLevel): Promise<void> {
+    if (!shouldAlert(prev, seg.risk_level)) return;
+    const follows = await this.listFollows(seg.id);
+    if (!follows.length) return;
+    const rows = follows.map((f) => ({
+      segment_id: seg.id,
+      segment_name: seg.name,
+      contact: f.contact,
+      channel: f.channel,
+      level: seg.risk_level,
+      message: buildAlertMessage(seg),
+      status: f.channel === "in_app" ? "in_app" : "simulada",
+    }));
+    await this.db.from(NOTIFICATIONS).insert(rows);
+  }
+
+  async addFollow(data: FollowInput): Promise<Follow> {
+    const payload = {
+      segment_id: data.segment_id,
+      name: data.name ?? null,
+      contact: data.contact ?? null,
+      channel: data.channel ?? "in_app",
+    };
+    const { data: rows, error } = await this.db.from(FOLLOWS).insert(payload).select();
+    if (error) throw error;
+    const follow = rows![0] as Follow;
+    const seg = await this.getSegment(follow.segment_id);
     if (seg) {
-      const fields = scoreFields(seg, await this.reportsForSegment(id));
-      await this.db.from(SEGMENTS).update(fields).eq("id", id);
+      await this.db.from(NOTIFICATIONS).insert({
+        segment_id: seg.id,
+        segment_name: seg.name,
+        contact: follow.contact,
+        channel: follow.channel,
+        level: seg.risk_level,
+        message: buildFollowMessage(seg),
+        status: follow.channel === "in_app" ? "in_app" : "simulada",
+      });
     }
+    return follow;
+  }
+
+  async listFollows(segmentId?: string): Promise<Follow[]> {
+    let query = this.db.from(FOLLOWS).select("*");
+    if (segmentId) query = query.eq("segment_id", segmentId);
+    const { data } = await query;
+    return (data ?? []) as Follow[];
+  }
+
+  async removeFollow(id: string): Promise<boolean> {
+    const { data } = await this.db.from(FOLLOWS).delete().eq("id", id).select();
+    return Boolean(data && data.length);
+  }
+
+  async listNotifications(limit = 50): Promise<AppNotification[]> {
+    const { data } = await this.db
+      .from(NOTIFICATIONS)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return (data ?? []) as AppNotification[];
   }
 }

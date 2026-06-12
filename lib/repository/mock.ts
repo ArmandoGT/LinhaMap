@@ -3,9 +3,17 @@
  * Semeado a partir de lib/mock-data; permite rodar sem Supabase (Regra 10).
  */
 import { MOCK_REPORTS, MOCK_SEGMENTS } from "@/lib/mock-data";
-import type { ProcessingLog, Report, Segment } from "@/lib/types";
+import { buildAlertMessage, buildFollowMessage, shouldAlert } from "@/lib/services/alerts";
+import type {
+  AppNotification,
+  Follow,
+  ProcessingLog,
+  Report,
+  RiskLevel,
+  Segment,
+} from "@/lib/types";
 
-import { type ReportFilters, type Repository, scoreFields } from "./base";
+import { type FollowInput, type ReportFilters, type Repository, scoreFields } from "./base";
 
 function uuid(): string {
   return crypto.randomUUID();
@@ -18,6 +26,8 @@ export class MockRepository implements Repository {
   private segments: Segment[];
   private reports: Report[];
   private logs: ProcessingLog[] = [];
+  private follows: Follow[] = [];
+  private notifications: AppNotification[] = [];
 
   constructor() {
     this.segments = structuredClone(MOCK_SEGMENTS);
@@ -35,7 +45,32 @@ export class MockRepository implements Repository {
   }
   private recalcSegment(id: string): void {
     const seg = this.findSegment(id);
-    if (seg) Object.assign(seg, scoreFields(seg, this.reportsForSegmentSync(id)));
+    if (!seg) return;
+    const prev = seg.risk_level;
+    Object.assign(seg, scoreFields(seg, this.reportsForSegmentSync(id)));
+    this.maybeNotify(seg, prev);
+  }
+
+  /** Gera notificações aos seguidores quando o risco do trecho piora. */
+  private maybeNotify(seg: Segment, prev: RiskLevel): void {
+    if (!shouldAlert(prev, seg.risk_level)) return;
+    for (const f of this.follows.filter((x) => x.segment_id === seg.id)) {
+      this.pushNotification(seg, f, buildAlertMessage(seg));
+    }
+  }
+
+  private pushNotification(seg: Segment, follow: Follow, message: string): void {
+    this.notifications.push({
+      id: uuid(),
+      segment_id: seg.id,
+      segment_name: seg.name,
+      contact: follow.contact,
+      channel: follow.channel,
+      level: seg.risk_level,
+      message,
+      status: follow.channel === "in_app" ? "in_app" : "simulada",
+      created_at: nowIso(),
+    });
   }
   private reportsForSegmentSync(id: string): Report[] {
     return this.reports.filter((r) => String(r.road_segment_id) === String(id));
@@ -86,7 +121,9 @@ export class MockRepository implements Repository {
   }
   async recalculateAll(): Promise<number> {
     for (const seg of this.segments) {
+      const prev = seg.risk_level;
       Object.assign(seg, scoreFields(seg, this.reportsForSegmentSync(seg.id)));
+      this.maybeNotify(seg, prev);
     }
     return this.segments.length;
   }
@@ -157,6 +194,44 @@ export class MockRepository implements Repository {
   async listProcessingLogs(limit = 20): Promise<ProcessingLog[]> {
     const rows = [...this.logs].sort((a, b) =>
       b.execution_date.localeCompare(a.execution_date),
+    );
+    return structuredClone(rows.slice(0, limit));
+  }
+
+  // --- Alertas / seguir trecho ---
+  async addFollow(data: FollowInput): Promise<Follow> {
+    const follow: Follow = {
+      id: uuid(),
+      segment_id: data.segment_id,
+      name: data.name ?? null,
+      contact: data.contact ?? null,
+      channel: data.channel ?? "in_app",
+      created_at: nowIso(),
+    };
+    this.follows.push(follow);
+    // Notificação de confirmação com o risco atual do trecho.
+    const seg = this.findSegment(follow.segment_id);
+    if (seg) this.pushNotification(seg, follow, buildFollowMessage(seg));
+    return structuredClone(follow);
+  }
+
+  async listFollows(segmentId?: string): Promise<Follow[]> {
+    const rows = segmentId
+      ? this.follows.filter((f) => f.segment_id === segmentId)
+      : this.follows;
+    return structuredClone(rows);
+  }
+
+  async removeFollow(id: string): Promise<boolean> {
+    const idx = this.follows.findIndex((f) => f.id === id);
+    if (idx === -1) return false;
+    this.follows.splice(idx, 1);
+    return true;
+  }
+
+  async listNotifications(limit = 50): Promise<AppNotification[]> {
+    const rows = [...this.notifications].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
     );
     return structuredClone(rows.slice(0, limit));
   }

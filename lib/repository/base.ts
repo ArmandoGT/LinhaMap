@@ -3,12 +3,26 @@
  * (Separado de index.ts para evitar importações circulares entre mock/supabase.)
  */
 import { calculateTrafficIndex } from "@/lib/services/scoring";
-import type { ProcessingLog, Report, Segment } from "@/lib/types";
+import type {
+  AlertChannel,
+  AppNotification,
+  Follow,
+  ProcessingLog,
+  Report,
+  Segment,
+} from "@/lib/types";
 
 export interface ReportFilters {
   status?: string | null;
   category?: string | null;
   road_segment_id?: string | null;
+}
+
+export interface FollowInput {
+  segment_id: string;
+  name?: string | null;
+  contact?: string | null;
+  channel?: AlertChannel;
 }
 
 export interface Repository {
@@ -30,6 +44,11 @@ export interface Repository {
   // Logs
   addProcessingLog(status: string, message: string): Promise<ProcessingLog>;
   listProcessingLogs(limit?: number): Promise<ProcessingLog[]>;
+  // Alertas / seguir trecho
+  addFollow(data: FollowInput): Promise<Follow>;
+  listFollows(segmentId?: string): Promise<Follow[]>;
+  removeFollow(id: string): Promise<boolean>;
+  listNotifications(limit?: number): Promise<AppNotification[]>;
 }
 
 /** Campos do score recalculados pelo motor (compartilhado pelos modos). */

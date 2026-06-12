@@ -1,5 +1,24 @@
 /** Rótulos em português dos enums de domínio (UI). */
-import type { ReportCategory, ReportSeverity, ReportStatus } from "@/lib/types";
+import type {
+  AlertChannel,
+  ReportCategory,
+  ReportSeverity,
+  ReportStatus,
+  WorkOrderStatus,
+} from "@/lib/types";
+
+export const CHANNEL_LABELS: Record<AlertChannel, string> = {
+  in_app: "No app",
+  email: "E-mail",
+  whatsapp: "WhatsApp",
+};
+
+export const WORK_ORDER_STATUS_LABELS: Record<WorkOrderStatus, string> = {
+  agendada: "Agendada",
+  em_execucao: "Em execução",
+  concluida: "Concluída",
+  cancelada: "Cancelada",
+};
 
 export const CATEGORY_LABELS: Record<ReportCategory, string> = {
   buraco: "Buraco",

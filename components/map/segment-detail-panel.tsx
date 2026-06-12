@@ -15,6 +15,8 @@ import { RISK_COLORS } from "@/lib/risk";
 import { computeTravelWindow, type TravelRating } from "@/lib/services/forecast";
 import type { SegmentDetail } from "@/lib/types";
 
+import { FollowButton } from "./follow-button";
+
 const RATING_COLOR: Record<TravelRating, string> = {
   boa: "hsl(var(--risk-baixo))",
   moderada: "hsl(var(--risk-medio))",
@@ -189,11 +191,14 @@ export function SegmentDetailPanel({
         </div>
       )}
 
-      <Button asChild variant="outline" className="w-full">
-        <Link href={`/denuncia?segment=${detail.id}`}>
-          <Megaphone /> Registrar denúncia neste trecho
-        </Link>
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button asChild variant="outline" className="w-full">
+          <Link href={`/denuncia?segment=${detail.id}`}>
+            <Megaphone /> Registrar denúncia neste trecho
+          </Link>
+        </Button>
+        <FollowButton segmentId={detail.id} />
+      </div>
     </div>
   );
 }

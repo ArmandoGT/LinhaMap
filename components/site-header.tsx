@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Route } from "lucide-react";
 
+import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -52,9 +53,12 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <Button asChild size="sm" className="shrink-0">
-          <Link href="/mapa">Ver mapa de risco</Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <Button asChild size="sm" className="shrink-0">
+            <Link href="/mapa">Ver mapa de risco</Link>
+          </Button>
+        </div>
       </div>
     </header>
   );
