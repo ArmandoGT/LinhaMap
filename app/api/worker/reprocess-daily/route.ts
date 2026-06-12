@@ -6,17 +6,24 @@ import { reprocessDaily } from "@/lib/services/worker";
 
 export const dynamic = "force-dynamic";
 
+/** Autoriza quando não há segredo configurado ou o Bearer confere. */
+function authorized(req: NextRequest): boolean {
+  if (!config.cronSecret) return true;
+  return req.headers.get("authorization") === `Bearer ${config.cronSecret}`;
+}
+
 /**
- * POST /api/worker/reprocess-daily — recalcula scores e registra log (cron diário).
+ * Reprocessa o risco de todos os trechos e registra log (cron diário, Seção 6.8).
+ * Aceita POST (GitHub Actions) e GET (Vercel Cron, que dispara via GET).
  * Se CRON_SECRET estiver definido, exige Authorization: Bearer <CRON_SECRET>.
  */
-export async function POST(req: NextRequest) {
-  if (config.cronSecret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${config.cronSecret}`) {
-      return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-    }
+async function handle(req: NextRequest) {
+  if (!authorized(req)) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
   const result = await reprocessDaily(getRepository());
   return NextResponse.json(result);
 }
+
+export const POST = handle;
+export const GET = handle;
