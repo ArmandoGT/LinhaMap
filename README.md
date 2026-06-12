@@ -192,6 +192,9 @@ redigido por IA, com fallback por lógica simples.
 
 ## ☁️ Deploy (Vercel)
 
+Guia completo passo a passo em **[`docs/DEPLOY.md`](./docs/DEPLOY.md)** (GitHub + Supabase + Vercel).
+Resumo:
+
 1. Importe o repositório na Vercel.
 2. Defina as variáveis de ambiente (mínimo: `ENABLE_MOCK_DATA`; para produção, as do Supabase + `CRON_SECRET`).
 3. Deploy — o `vercel.json` já agenda o reprocessamento diário.
