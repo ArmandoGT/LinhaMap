@@ -7,7 +7,7 @@ import L from "leaflet";
 import { useEffect } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 
-const ARIQUEMES_CENTER: [number, number] = [-9.93, -63.05];
+const ARIQUEMES_CENTER: [number, number] = [-9.88, -63.07];
 
 function HeatLayer({ points }: { points: [number, number, number][] }) {
   const map = useMap();
@@ -31,7 +31,7 @@ export default function HeatmapMap({ points }: { points: [number, number, number
   return (
     <MapContainer
       center={ARIQUEMES_CENTER}
-      zoom={11}
+      zoom={10}
       scrollWheelZoom={false}
       className="h-full w-full"
       style={{ background: "#e8eef0" }}
