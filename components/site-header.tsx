@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "Início" },
   { href: "/mapa", label: "Mapa" },
+  { href: "/trajeto", label: "Trajeto" },
   { href: "/denuncia", label: "Denúncia" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/relatorios", label: "Relatórios" },
@@ -32,7 +33,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((item) => {
             const active =
               item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

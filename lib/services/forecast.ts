@@ -23,7 +23,7 @@ export interface TravelWindow {
   recommendation: string;
 }
 
-function rate(projected: number): TravelRating {
+export function travelRating(projected: number): TravelRating {
   if (projected <= 20) return "boa";
   if (projected <= 45) return "moderada";
   return "ruim";
@@ -43,7 +43,7 @@ export function computeTravelWindow(segment: {
   const days: TravelDay[] = forecast.map((d) => {
     running = running * 0.5 + d.mm; // decaimento + chuva do dia
     const projected = Math.round(running * 10) / 10;
-    return { date: d.date, mm: d.mm, projected, rating: rate(projected) };
+    return { date: d.date, mm: d.mm, projected, rating: travelRating(projected) };
   });
 
   // Melhor dia: menor chuva projetada que não seja "ruim".
