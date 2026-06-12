@@ -1,10 +1,25 @@
 import Link from "next/link";
-import { CloudRain, Droplets, Megaphone, MountainSnow, MousePointerClick } from "lucide-react";
+import {
+  CalendarCheck,
+  CloudRain,
+  Droplets,
+  Megaphone,
+  MountainSnow,
+  MousePointerClick,
+  Truck,
+} from "lucide-react";
 
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
 import { RISK_COLORS } from "@/lib/risk";
+import { computeTravelWindow, type TravelRating } from "@/lib/services/forecast";
 import type { SegmentDetail } from "@/lib/types";
+
+const RATING_COLOR: Record<TravelRating, string> = {
+  boa: "hsl(var(--risk-baixo))",
+  moderada: "hsl(var(--risk-medio))",
+  ruim: "hsl(var(--risk-critico))",
+};
 
 export function SegmentDetailPanel({
   detail,
@@ -36,6 +51,7 @@ export function SegmentDetailPanel({
 
   const color = RISK_COLORS[detail.risk_level];
   const maxForecast = Math.max(1, ...(detail.forecast_daily ?? []).map((d) => d.mm));
+  const travel = computeTravelWindow(detail);
 
   return (
     <div className="flex flex-col gap-6 p-5">
@@ -82,23 +98,49 @@ export function SegmentDetailPanel({
         </div>
       )}
 
-      {/* Previsão diária (mini-gráfico) */}
-      {detail.forecast_daily && detail.forecast_daily.length > 0 && (
+      {/* Janela de escoamento + previsão diária */}
+      {travel.days.length > 0 && (
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-muted-foreground">
-            Previsão de chuva (mm/dia)
+          <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+            <Truck className="h-4 w-4" /> Melhor janela para escoar
           </span>
-          <div className="flex items-end justify-between gap-1.5" style={{ height: 70 }}>
-            {detail.forecast_daily.map((d) => (
-              <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-[10px] text-muted-foreground">{d.mm.toFixed(0)}</span>
-                <div
-                  className="w-full rounded-t bg-primary/70"
-                  style={{ height: `${(d.mm / maxForecast) * 44}px` }}
-                />
-                <span className="text-[10px] text-muted-foreground">{d.date}</span>
-              </div>
-            ))}
+          <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3">
+            <CalendarCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-sm leading-relaxed">{travel.recommendation}</p>
+          </div>
+          <div className="flex items-end justify-between gap-1.5" style={{ height: 78 }}>
+            {travel.days.map((d) => {
+              const isBest = d.date === travel.bestDay;
+              return (
+                <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground">{d.mm.toFixed(0)}</span>
+                  <div
+                    className="w-full rounded-t"
+                    style={{
+                      height: `${(d.mm / maxForecast) * 40 + 4}px`,
+                      backgroundColor: RATING_COLOR[d.rating],
+                      outline: isBest ? "2px solid hsl(var(--primary))" : "none",
+                      outlineOffset: 1,
+                    }}
+                    title={`${d.date}: ${d.mm} mm previstos · ${d.rating}`}
+                  />
+                  <span
+                    className={
+                      isBest
+                        ? "text-[10px] font-semibold text-primary"
+                        : "text-[10px] text-muted-foreground"
+                    }
+                  >
+                    {d.date}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+            <Legend color={RATING_COLOR.boa} label="Boa" />
+            <Legend color={RATING_COLOR.moderada} label="Moderada" />
+            <Legend color={RATING_COLOR.ruim} label="Ruim" />
           </div>
         </div>
       )}
@@ -153,6 +195,15 @@ export function SegmentDetailPanel({
         </Link>
       </Button>
     </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      {label}
+    </span>
   );
 }
 
