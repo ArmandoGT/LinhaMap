@@ -25,7 +25,7 @@ export const config = {
 };
 
 /** Usa Supabase apenas quando o modo mock está desligado E há credenciais. */
-export function useSupabase(): boolean {
+export function isSupabaseMode(): boolean {
   return !config.enableMockData && Boolean(config.supabaseUrl && config.supabaseServiceKey);
 }
 
@@ -36,5 +36,5 @@ export function aiEnabled(): boolean {
 
 /** Modo de dados ativo (exibido no /api/health). */
 export function dataMode(): "mock" | "supabase" {
-  return useSupabase() ? "supabase" : "mock";
+  return isSupabaseMode() ? "supabase" : "mock";
 }

@@ -2,7 +2,7 @@
  * Factory do repositório — escolhe mock ou supabase conforme a configuração.
  * Cache em globalThis preserva o estado mock entre requisições no mesmo processo.
  */
-import { useSupabase } from "@/lib/config";
+import { isSupabaseMode } from "@/lib/config";
 
 import type { Repository } from "./base";
 import { MockRepository } from "./mock";
@@ -14,7 +14,7 @@ const globalForRepo = globalThis as unknown as { __linhamapRepo?: Repository };
 
 export function getRepository(): Repository {
   if (!globalForRepo.__linhamapRepo) {
-    globalForRepo.__linhamapRepo = useSupabase()
+    globalForRepo.__linhamapRepo = isSupabaseMode()
       ? new SupabaseRepository()
       : new MockRepository();
   }
