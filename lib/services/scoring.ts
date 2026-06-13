@@ -137,7 +137,7 @@ function buildExplanation(
   return `Risco ${level} devido a ${joinPt(top)}.`;
 }
 
-function buildRecommendations(
+export function buildRecommendations(
   level: RiskLevel,
   factors: FactorBreakdown[],
   reportCount: number,
