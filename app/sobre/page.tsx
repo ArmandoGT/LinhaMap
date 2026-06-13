@@ -7,6 +7,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { LogoMark } from "@/components/brand";
 import { Card, CardContent } from "@/components/ui/card";
 import { dataMode } from "@/lib/config";
 
@@ -23,6 +24,7 @@ export default function SobrePage() {
   return (
     <div className="container max-w-4xl py-12">
       <div className="mb-10 flex flex-col gap-3">
+        <LogoMark height={56} />
         <h1 className="text-3xl font-bold tracking-tight">Sobre o LinhaMap</h1>
         <p className="text-muted-foreground">
           Plataforma preditiva de trafegabilidade rural para Ariquemes/RO, desenvolvida para
