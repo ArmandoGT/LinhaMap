@@ -17,6 +17,7 @@ import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { exportCsvUrl } from "@/lib/api-client";
+import { heatPoints } from "@/lib/services/dashboard";
 import { CATEGORY_LABELS, SEVERITY_LABELS, STATUS_LABELS } from "@/lib/labels";
 import { RISK_COLORS } from "@/lib/risk";
 import {
@@ -110,21 +111,7 @@ export function DashboardView({
     });
   }, [reports, segMap, ruralLine, riskLevel, status, category, period]);
 
-  const heatPoints = useMemo(
-    () =>
-      filtered
-        .filter((r) => r.latitude != null && r.longitude != null)
-        .map((r) => {
-          const intensity =
-            r.severity === "critica" ? 1 : r.severity === "alta" ? 0.7 : r.severity === "media" ? 0.4 : 0.2;
-          return [r.latitude as number, r.longitude as number, intensity] as [
-            number,
-            number,
-            number,
-          ];
-        }),
-    [filtered],
-  );
+  const points = useMemo(() => heatPoints(filtered), [filtered]);
 
   const maxCat = Math.max(1, ...categoryCounts.map((c) => c.count));
 
@@ -242,8 +229,8 @@ export function DashboardView({
         <CardContent className="flex flex-col gap-3 p-5">
           <h2 className="font-semibold">Mapa de calor das denúncias</h2>
           <div className="h-[320px] w-full overflow-hidden rounded-lg border">
-            {heatPoints.length > 0 ? (
-              <HeatmapMap points={heatPoints} />
+            {points.length > 0 ? (
+              <HeatmapMap points={points} />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 Nenhuma denúncia georreferenciada no filtro atual.
