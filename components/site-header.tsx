@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Route } from "lucide-react";
 
+import { LogoMark, Wordmark } from "@/components/brand";
 import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,13 +24,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Route className="h-5 w-5" />
-          </span>
-          <span className="text-lg font-bold tracking-tight">
-            Linha<span className="text-primary">Map</span>
-          </span>
+        <Link href="/" className="flex items-center gap-2" aria-label="LinhaMap — página inicial">
+          <LogoMark height={32} priority />
+          <Wordmark height={20} priority />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
