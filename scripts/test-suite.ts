@@ -9,8 +9,10 @@
  */
 import { calculateTrafficIndex } from "@/lib/services/scoring";
 import { classifyByRules } from "@/lib/services/ai-classifier";
+import { parseOpenMeteoDaily } from "@/lib/services/weather";
+import { serializeSegmentDetail } from "@/lib/services/serializers";
 import { getRepository } from "@/lib/repository";
-import { scoreToLevel } from "@/lib/types";
+import { scoreToLevel, type Segment } from "@/lib/types";
 
 // --- Mini-harness (sem dependências externas; roda via tsx) ---
 type Kind = "feliz" | "borda";
@@ -180,6 +182,95 @@ const groups: Group[] = [
         kind: "borda",
         name: "Repositório mock carrega exatamente os 8 trechos de Ariquemes",
         run: async () => (await getRepository().listSegments()).length === 8,
+      },
+    ],
+  },
+  // =========================================================================
+  {
+    funcionalidade: "F4 — Integração meteorológica real (Open-Meteo)",
+    oraculo:
+      "Converte o bloco `daily` da API em acumulado 72h (3 dias passados) + " +
+      "previsão de 7 dias; falha/resposta vazia degrada para os dados atuais.",
+    cases: [
+      {
+        kind: "feliz",
+        name: "3 dias passados + 7 de previsão → acumulado 60mm, previsão 21mm, 7 dias (data DD/MM)",
+        run: () => {
+          const w = parseOpenMeteoDaily({
+            time: [
+              "2026-06-09", "2026-06-10", "2026-06-11", // passado (72h)
+              "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15",
+              "2026-06-16", "2026-06-17", "2026-06-18", // previsão (7d)
+            ],
+            precipitation_sum: [10, 20, 30, 5, 4, 3, 2, 1, 0, 6],
+          });
+          return (
+            w.accumulated_rain_72h === 60 &&
+            w.forecast_rain_7d === 21 &&
+            w.forecast_daily.length === 7 &&
+            w.forecast_daily[0].date === "12/06"
+          );
+        },
+      },
+      {
+        kind: "borda",
+        name: "Sem dias passados (só 7 de previsão) → acumulado null, não sobrescreve",
+        run: () => {
+          const w = parseOpenMeteoDaily({
+            time: ["2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18"],
+            precipitation_sum: [5, 4, 3, 2, 1, 0, 6],
+          });
+          return w.accumulated_rain_72h === null && w.forecast_rain_7d === 21 && w.forecast_daily.length === 7;
+        },
+      },
+      {
+        kind: "borda",
+        name: "Resposta vazia/indefinida não quebra → acumulado null, previsão 0, lista vazia",
+        run: () => {
+          const w = parseOpenMeteoDaily(undefined);
+          return w.accumulated_rain_72h === null && w.forecast_rain_7d === 0 && w.forecast_daily.length === 0;
+        },
+      },
+    ],
+  },
+  // =========================================================================
+  {
+    funcionalidade: "F5 — Modo demonstração (congela níveis curados)",
+    oraculo:
+      "Com demoMode, o painel mostra o nível/score ARMAZENADO; sem demoMode, " +
+      "recalcula ao vivo a partir das entradas (que decaem com o tempo).",
+    cases: [
+      {
+        kind: "feliz",
+        name: "demoMode=true → painel devolve o valor curado armazenado (crítico/86), não o recalculado",
+        run: () => {
+          const curado = {
+            id: "test", name: "T", rural_line: "T",
+            coordinates: [[-63, -9], [-63.01, -9.01]],
+            latitude: -9, longitude: -63, slope: 1,
+            accumulated_rain_72h: 10, forecast_rain_7d: 10, forecast_daily: [],
+            reports_count: 0, risk_score: 86, risk_level: "critico",
+            explanation: "Curado: risco crítico.", updated_at: null,
+          } as unknown as Segment;
+          const d = serializeSegmentDetail(curado, [], { demoMode: true });
+          return d.risk_level === "critico" && d.risk_score === 86;
+        },
+      },
+      {
+        kind: "borda",
+        name: "demoMode=false → mesmo trecho recalcula ao vivo e cai (baixo), provando o problema que o modo demo blinda",
+        run: () => {
+          const curado = {
+            id: "test", name: "T", rural_line: "T",
+            coordinates: [[-63, -9], [-63.01, -9.01]],
+            latitude: -9, longitude: -63, slope: 1,
+            accumulated_rain_72h: 10, forecast_rain_7d: 10, forecast_daily: [],
+            reports_count: 0, risk_score: 86, risk_level: "critico",
+            explanation: "Curado: risco crítico.", updated_at: null,
+          } as unknown as Segment;
+          const d = serializeSegmentDetail(curado, [], { demoMode: false });
+          return d.risk_level === "baixo" && d.risk_score < 86;
+        },
       },
     ],
   },
