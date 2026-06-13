@@ -5,6 +5,7 @@
  * `coordinates` (jsonb) para o traçado. Será exercitado quando houver um
  * projeto Supabase (modo real); em desenvolvimento usamos o MockRepository.
  */
+import { config } from "@/lib/config";
 import { buildAlertMessage, buildFollowMessage, shouldAlert } from "@/lib/services/alerts";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type {
@@ -72,6 +73,8 @@ export class SupabaseRepository implements Repository {
   }
   async recalculateAll(): Promise<number> {
     const segments = await this.listSegments();
+    // Modo demo: não sobrescreve os valores curados (cron vira no-op de escrita).
+    if (config.demoMode) return segments.length;
     for (const seg of segments) {
       const prev = seg.risk_level;
       const fields = scoreFields(seg, await this.reportsForSegment(seg.id));
