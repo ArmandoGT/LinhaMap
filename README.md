@@ -20,7 +20,7 @@
 
 ## 🔗 Links de entrega
 
-- **MVP online:** _a publicar (deploy na Vercel — ver Etapa 17)_
+- **MVP online:** **https://linha-map.vercel.app**
 - **Vídeo de pitch:** _a gravar (roteiro em [`PITCH.md`](./Docs%20-%20MD/PITCH.md))_
 - **Apresentação/slides:** _a preparar_
 
@@ -88,7 +88,7 @@ recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a 
 | IA | Anthropic Claude (multimodal) com fallback por regras |
 | Automação | Vercel Cron / GitHub Actions (cron diário) |
 | Deploy | Vercel (deploy único) |
-| Dados públicos | Open-Meteo, OpenStreetMap, SRTM, INMET (preparado para integração) |
+| Dados públicos | **Open-Meteo (chuva real, integrado)**, OpenStreetMap (geometria das linhas); SRTM/INMET preparados para integração |
 
 ### Arquitetura
 
@@ -148,8 +148,10 @@ Veja [`.env.example`](./.env.example). O sistema **funciona sem nenhuma chave** 
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Conexão server-side com o Supabase |
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cliente (browser) |
 | `OPEN_METEO_BASE_URL` | Endpoint do Open-Meteo |
+| `ENABLE_WEATHER` | `true` (padrão) busca chuva real no reprocessamento; `false` para demo offline |
 | `ANTHROPIC_API_KEY` / `ENABLE_AI_CLASSIFICATION` | Liga a classificação por IA (senão, fallback) |
 | `CRON_SECRET` | Protege o endpoint do worker no cron |
+| `DEMO_MODE` | `true` congela os níveis curados (painel mostra valor armazenado; cron não sobrescreve) — útil para a apresentação |
 
 ## 🗄️ Como configurar o Supabase (opcional)
 
@@ -185,7 +187,8 @@ redigido por IA, com fallback por lógica simples.
 
 ## ⏰ Como funciona o cron diário
 
-`POST/GET /api/worker/reprocess-daily` recalcula o score de todos os trechos e registra um log.
+`POST/GET /api/worker/reprocess-daily` **atualiza a chuva real de cada trecho via Open-Meteo**
+(acumulado 72h + previsão 7d), recalcula o score de todos os trechos e registra um log.
 É agendado por **Vercel Cron** (`vercel.json`) e/ou **GitHub Actions**
 ([`.github/workflows/daily-reprocess.yml`](./.github/workflows/daily-reprocess.yml)), protegido por
 `CRON_SECRET`.
@@ -274,7 +277,7 @@ ferramentas usadas, finalidade, partes do projeto apoiadas e o que a equipe revi
 
 ## ⚠️ Limitações do MVP
 
-- Dados meteorológicos e de declividade simulados/mockados nesta versão
+- Chuva (acumulada 72h + previsão 7d) vem **real do Open-Meteo** no reprocessamento; **declividade** ainda é mockada
 - Score baseado em fórmula explicável (não em modelo treinado com histórico real)
 - Persistência completa requer configuração do Supabase (modo mock não persiste entre instâncias serverless)
 
