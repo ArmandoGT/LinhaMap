@@ -13,6 +13,8 @@ export const config = {
   // Dados públicos.
   openMeteoBaseUrl:
     process.env.OPEN_METEO_BASE_URL ?? "https://api.open-meteo.com/v1/forecast",
+  // Busca de clima real no reprocessamento (liga por padrão; desligue p/ demo offline).
+  enableWeather: process.env.ENABLE_WEATHER !== "false",
 
   // IA (opcional — há fallback por regras).
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
@@ -22,6 +24,11 @@ export const config = {
 
   // Proteção simples do endpoint de cron.
   cronSecret: process.env.CRON_SECRET ?? "",
+
+  // Modo demonstração: congela os níveis/score curados (o painel mostra o valor
+  // armazenado em vez de recalcular, e o cron não sobrescreve os trechos).
+  // Ações explícitas (criar denúncia, ?weather=1) continuam funcionando.
+  demoMode: process.env.DEMO_MODE === "true",
 };
 
 /** Usa Supabase apenas quando o modo mock está desligado E há credenciais. */
