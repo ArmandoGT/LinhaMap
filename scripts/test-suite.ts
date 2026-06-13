@@ -11,8 +11,9 @@ import { calculateTrafficIndex } from "@/lib/services/scoring";
 import { classifyByRules } from "@/lib/services/ai-classifier";
 import { parseOpenMeteoDaily } from "@/lib/services/weather";
 import { serializeSegmentDetail } from "@/lib/services/serializers";
+import { heatPoints, severityIntensity } from "@/lib/services/dashboard";
 import { getRepository } from "@/lib/repository";
-import { scoreToLevel, type Segment } from "@/lib/types";
+import { scoreToLevel, type Report, type Segment } from "@/lib/types";
 
 // --- Mini-harness (sem dependências externas; roda via tsx) ---
 type Kind = "feliz" | "borda";
@@ -271,6 +272,61 @@ const groups: Group[] = [
           const d = serializeSegmentDetail(curado, [], { demoMode: false });
           return d.risk_level === "baixo" && d.risk_score < 86;
         },
+      },
+    ],
+  },
+  // =========================================================================
+  {
+    funcionalidade: "F6 — Mapa de calor do dashboard (heatPoints)",
+    oraculo:
+      "Cada denúncia georreferenciada vira um ponto [lat, lon, intensidade]; " +
+      "a intensidade reflete a severidade e denúncias sem GPS são ignoradas.",
+    cases: [
+      {
+        kind: "feliz",
+        name: "Intensidade por severidade: crítica=1 · alta=0,7 · média=0,4 · baixa=0,2",
+        run: () =>
+          severityIntensity("critica") === 1 &&
+          severityIntensity("alta") === 0.7 &&
+          severityIntensity("media") === 0.4 &&
+          severityIntensity("baixa") === 0.2,
+      },
+      {
+        kind: "feliz",
+        name: "heatPoints mapeia denúncia georreferenciada → [lat, lon, intensidade]",
+        run: () => {
+          const reports = [
+            { latitude: -9.89, longitude: -63.15, severity: "critica" },
+          ] as unknown as Report[];
+          const pts = heatPoints(reports);
+          return (
+            pts.length === 1 &&
+            pts[0][0] === -9.89 &&
+            pts[0][1] === -63.15 &&
+            pts[0][2] === 1
+          );
+        },
+      },
+      {
+        kind: "borda",
+        name: "heatPoints ignora denúncias sem latitude/longitude (não quebra o mapa)",
+        run: () => {
+          const reports = [
+            { latitude: -9.89, longitude: -63.15, severity: "alta" },
+            { latitude: null, longitude: null, severity: "critica" },
+            { latitude: -9.9, longitude: undefined, severity: "media" },
+          ] as unknown as Report[];
+          const pts = heatPoints(reports);
+          return pts.length === 1 && pts[0][2] === 0.7;
+        },
+      },
+      {
+        kind: "borda",
+        name: "Severidade desconhecida/ausente → intensidade mínima 0,2 (degrada com segurança)",
+        run: () =>
+          severityIntensity(undefined) === 0.2 &&
+          severityIntensity(null) === 0.2 &&
+          severityIntensity("xyz") === 0.2,
       },
     ],
   },
