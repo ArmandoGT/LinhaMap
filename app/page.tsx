@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { LogoMark } from "@/components/brand";
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +33,7 @@ export default async function Home() {
       {/* ---------------- HERO ---------------- */}
       <section className="border-b bg-gradient-to-b from-secondary/40 to-background">
         <div className="container flex flex-col items-center gap-6 py-20 text-center">
+          <LogoMark height={76} priority />
           <span className="rounded-full border bg-background px-4 py-1.5 text-sm font-medium text-muted-foreground">
             Hackathon IFRO Ariquemes 2026/1 · Desafio Empresa e Comunidade
           </span>
