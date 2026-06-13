@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { getRepository } from "@/lib/repository";
+import { reprocessDaily } from "@/lib/services/worker";
 
 export const dynamic = "force-dynamic";
 
-/** POST /api/segments/recalculate — recalcula o score de todos os trechos. */
+/**
+ * POST /api/segments/recalculate — atualiza a chuva real (Open-Meteo) e
+ * recalcula o score de todos os trechos. Usado para sincronizar após o deploy.
+ */
 export async function POST() {
-  const repo = getRepository();
-  const updated = await repo.recalculateAll();
-  return NextResponse.json({
-    updated,
-    message: `${updated} trechos recalculados com sucesso.`,
-  });
+  const result = await reprocessDaily(getRepository());
+  return NextResponse.json(result);
 }
