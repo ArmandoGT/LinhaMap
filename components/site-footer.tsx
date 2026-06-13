@@ -1,12 +1,14 @@
 import Link from "next/link";
 
+import { Wordmark } from "@/components/brand";
+
 export function SiteFooter() {
   return (
     <footer className="border-t bg-muted/30">
       <div className="container flex flex-col items-center justify-between gap-3 py-6 text-sm text-muted-foreground sm:flex-row">
-        <p>
-          <span className="font-semibold text-foreground">LinhaMap</span> — Trafegabilidade
-          rural preditiva para Ariquemes/RO.
+        <p className="flex flex-wrap items-center justify-center gap-1.5">
+          <Wordmark height={15} />
+          <span>— Trafegabilidade rural preditiva para Ariquemes/RO.</span>
         </p>
         <p className="flex items-center gap-3">
           <span>Hackathon IFRO Ariquemes 2026/1</span>
