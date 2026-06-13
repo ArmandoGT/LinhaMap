@@ -240,7 +240,7 @@ cobrimos o caminho feliz **e** as bordas/erros das funções críticas.
 ### Como executar e evidência
 
 ```bash
-npm test         # 15 casos (caminho feliz + erro/valor-limite), com relatório PASS/FAIL
+npm test         # 24 casos (caminho feliz + erro/valor-limite), com relatório PASS/FAIL
 npm run verify   # checagem de paridade do motor de score
 npx tsc --noEmit # verificação estática de tipos
 ```
