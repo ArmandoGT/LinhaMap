@@ -24,6 +24,30 @@ export function criticalSegments(segments: Segment[]): Segment[] {
     .sort((a, b) => (b.risk_score ?? 0) - (a.risk_score ?? 0));
 }
 
+/** Intensidade do ponto de calor por severidade da denúncia (0–1). */
+export function severityIntensity(severity: Report["severity"] | string | null | undefined): number {
+  switch (severity) {
+    case "critica":
+      return 1;
+    case "alta":
+      return 0.7;
+    case "media":
+      return 0.4;
+    default:
+      return 0.2;
+  }
+}
+
+/**
+ * Monta os pontos do mapa de calor a partir das denúncias.
+ * Função pura: ignora denúncias sem geolocalização e mapeia severidade → intensidade.
+ */
+export function heatPoints(reports: Report[]): Array<[number, number, number]> {
+  return reports
+    .filter((r) => r.latitude != null && r.longitude != null)
+    .map((r) => [r.latitude as number, r.longitude as number, severityIntensity(r.severity)]);
+}
+
 export function reportsByCategory(reports: Report[]): Array<{ category: string; count: number }> {
   const counts: Record<string, number> = {};
   for (const r of reports) {
