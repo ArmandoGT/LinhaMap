@@ -2,6 +2,7 @@
  * Repositório em memória — porte de MockRepository (repository.py).
  * Semeado a partir de lib/mock-data; permite rodar sem Supabase (Regra 10).
  */
+import { config } from "@/lib/config";
 import { MOCK_REPORTS, MOCK_SEGMENTS } from "@/lib/mock-data";
 import { buildAlertMessage, buildFollowMessage, shouldAlert } from "@/lib/services/alerts";
 import type {
@@ -128,6 +129,8 @@ export class MockRepository implements Repository {
     return structuredClone(this.reportsForSegmentSync(id));
   }
   async recalculateAll(): Promise<number> {
+    // Modo demo: não sobrescreve os valores curados (cron vira no-op de escrita).
+    if (config.demoMode) return this.segments.length;
     for (const seg of this.segments) {
       const prev = seg.risk_level;
       Object.assign(seg, scoreFields(seg, this.reportsForSegmentSync(seg.id)));
