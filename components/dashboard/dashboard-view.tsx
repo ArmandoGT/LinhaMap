@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { exportCsvUrl } from "@/lib/api-client";
 import { heatPoints } from "@/lib/services/dashboard";
-import { CATEGORY_LABELS, SEVERITY_LABELS, STATUS_LABELS } from "@/lib/labels";
+import { CATEGORY_LABELS, ORIGIN_LABELS, SEVERITY_LABELS, STATUS_LABELS } from "@/lib/labels";
 import { RISK_COLORS } from "@/lib/risk";
 import {
   REPORT_CATEGORIES,
@@ -85,6 +85,7 @@ export function DashboardView({
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
   const [period, setPeriod] = useState("all");
+  const [origin, setOrigin] = useState(""); // "" | "with_account" | "anonymous"
 
   const segMap = useMemo(
     () => new Map(segments.map((s) => [String(s.id), s])),
@@ -103,13 +104,15 @@ export function DashboardView({
       if (riskLevel && seg?.risk_level !== riskLevel) return false;
       if (status && r.status !== status) return false;
       if (category && r.category !== category) return false;
+      if (origin === "with_account" && r.user_id == null) return false;
+      if (origin === "anonymous" && r.user_id != null) return false;
       if (period !== "all" && r.created_at) {
         const ageDays = (now - new Date(r.created_at).getTime()) / 86_400_000;
         if (ageDays > Number(period)) return false;
       }
       return true;
     });
-  }, [reports, segMap, ruralLine, riskLevel, status, category, period]);
+  }, [reports, segMap, ruralLine, riskLevel, status, category, origin, period]);
 
   const points = useMemo(() => heatPoints(filtered), [filtered]);
 
@@ -270,6 +273,11 @@ export function DashboardView({
                 <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
               ))}
             </select>
+            <select className={fieldClass} value={origin} onChange={(e) => setOrigin(e.target.value)}>
+              <option value="">Todas as origens</option>
+              <option value="with_account">{ORIGIN_LABELS.with_account}</option>
+              <option value="anonymous">{ORIGIN_LABELS.anonymous}</option>
+            </select>
             <select className={fieldClass} value={period} onChange={(e) => setPeriod(e.target.value)}>
               {PERIODS.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
@@ -286,13 +294,14 @@ export function DashboardView({
                   <th className="py-2 pr-3 font-medium">Categoria</th>
                   <th className="py-2 pr-3 font-medium">Severidade</th>
                   <th className="py-2 pr-3 font-medium">Status</th>
+                  <th className="py-2 pr-3 font-medium">Origem</th>
                   <th className="py-2 font-medium">Relator</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-muted-foreground">
+                    <td colSpan={7} className="py-6 text-center text-muted-foreground">
                       Nenhuma ocorrência para os filtros selecionados.
                     </td>
                   </tr>
@@ -309,6 +318,9 @@ export function DashboardView({
                         <td className="py-2 pr-3">{SEVERITY_LABELS[r.severity]}</td>
                         <td className="py-2 pr-3">
                           <StatusPill status={r.status} />
+                        </td>
+                        <td className="py-2 pr-3">
+                          <OriginBadge anonymous={r.user_id == null} />
                         </td>
                         <td className="py-2 text-muted-foreground">{r.reporter_name ?? "Anônimo"}</td>
                       </tr>
@@ -351,6 +363,20 @@ function StatCard({
         <span className="text-xs text-muted-foreground">{label}</span>
       </CardContent>
     </Card>
+  );
+}
+
+function OriginBadge({ anonymous }: { anonymous: boolean }) {
+  return (
+    <span
+      className={
+        anonymous
+          ? "rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+          : "rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+      }
+    >
+      {anonymous ? ORIGIN_LABELS.anonymous : ORIGIN_LABELS.with_account}
+    </span>
   );
 }
 

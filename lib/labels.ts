@@ -41,3 +41,9 @@ export const STATUS_LABELS: Record<ReportStatus, string> = {
   em_analise: "Em análise",
   resolvida: "Resolvida",
 };
+
+/** Origem da denúncia: com conta (user_id) vs anônima (user_id null). */
+export const ORIGIN_LABELS = {
+  with_account: "Com conta",
+  anonymous: "Anônima",
+} as const;

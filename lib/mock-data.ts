@@ -193,7 +193,7 @@ export const MOCK_SEGMENTS: Segment[] = [
 export const MOCK_REPORTS: Report[] = [
   {
     id: "22222222-2222-2222-2222-000000000001",
-    user_id: null,
+    user_id: "00000000-0000-0000-0000-0000000000a1",
     reporter_name: "João Ferreira",
     phone: "(69) 99999-1001",
     road_segment_id: "11111111-1111-1111-1111-000000000001",
@@ -210,7 +210,7 @@ export const MOCK_REPORTS: Report[] = [
   },
   {
     id: "22222222-2222-2222-2222-000000000002",
-    user_id: null,
+    user_id: "00000000-0000-0000-0000-0000000000a2",
     reporter_name: "Maria Souza",
     phone: "(69) 99999-1002",
     road_segment_id: "11111111-1111-1111-1111-000000000001",
