@@ -42,9 +42,11 @@ export async function reprocessDaily(
   executed_at: string | null;
 }> {
   try {
-    // Override explícito (?weather=1/0) vence a flag de ambiente — permite a
-    // demo "híbrida": produção curada por padrão, clima real sob demanda.
-    const useWeather = opts.weather ?? config.enableWeather;
+    // Override explícito (?weather=1/0) vence tudo — permite a demo "híbrida":
+    // clima real sob demanda. Em modo demo, o cron NÃO busca clima por padrão
+    // (senão refreshWeather→updateSegment sobrescreveria os scores curados,
+    // furando o congelamento). Fora do demo, segue a flag de ambiente.
+    const useWeather = opts.weather ?? (config.demoMode ? false : config.enableWeather);
     const refreshed = useWeather ? await refreshWeather(repo) : 0;
     const updated = await repo.recalculateAll();
     const detail =
