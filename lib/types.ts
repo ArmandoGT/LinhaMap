@@ -76,6 +76,7 @@ export interface SegmentDetail extends Segment {
 /** Denúncia colaborativa (reports). */
 export interface Report {
   id: string;
+  user_id: string | null;
   reporter_name: string | null;
   phone: string | null;
   road_segment_id: string | null;
@@ -132,6 +133,7 @@ export type AlertChannel = (typeof ALERT_CHANNELS)[number];
 /** Inscrição para receber alertas de um trecho. */
 export interface Follow {
   id: string;
+  user_id: string | null;
   segment_id: string;
   name: string | null;
   contact: string | null;
@@ -142,6 +144,7 @@ export interface Follow {
 /** Notificação de alerta gerada para um seguidor. */
 export interface AppNotification {
   id: string;
+  user_id: string | null;
   segment_id: string | null;
   segment_name: string | null;
   contact: string | null;

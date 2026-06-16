@@ -83,12 +83,8 @@ export const getWeeklyReport = () =>
 export const exportCsvUrl = "/api/dashboard/export-csv";
 
 // --- Alertas / seguir trecho ---
-export const followSegment = (data: {
-  segment_id: string;
-  name?: string | null;
-  contact?: string | null;
-  channel?: AlertChannel;
-}) => http<Follow>("/api/follows", { method: "POST", body: JSON.stringify(data) });
+export const followSegment = (data: { segment_id: string; channel?: AlertChannel }) =>
+  http<Follow>("/api/follows", { method: "POST", body: JSON.stringify(data) });
 
 export const getNotifications = () => http<AppNotification[]>("/api/notifications");
 

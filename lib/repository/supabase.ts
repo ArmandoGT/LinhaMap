@@ -90,6 +90,7 @@ export class SupabaseRepository implements Repository {
     if (filters.status) query = query.eq("status", filters.status);
     if (filters.category) query = query.eq("category", filters.category);
     if (filters.road_segment_id) query = query.eq("road_segment_id", filters.road_segment_id);
+    if (filters.user_id) query = query.eq("user_id", filters.user_id);
     const { data } = await query.order("created_at", { ascending: false });
     return (data ?? []) as Report[];
   }
@@ -155,6 +156,7 @@ export class SupabaseRepository implements Repository {
     const follows = await this.listFollows(seg.id);
     if (!follows.length) return;
     const rows = follows.map((f) => ({
+      user_id: f.user_id ?? null,
       segment_id: seg.id,
       segment_name: seg.name,
       contact: f.contact,
@@ -167,8 +169,20 @@ export class SupabaseRepository implements Repository {
   }
 
   async addFollow(data: FollowInput): Promise<Follow> {
+    // Evita inscrição duplicada do mesmo usuário no mesmo trecho.
+    if (data.user_id) {
+      const existing = await this.db
+        .from(FOLLOWS)
+        .select("*")
+        .eq("user_id", data.user_id)
+        .eq("segment_id", data.segment_id)
+        .limit(1);
+      if (existing.data?.[0]) return existing.data[0] as Follow;
+    }
     const payload = {
+      user_id: data.user_id ?? null,
       segment_id: data.segment_id,
+      road_segment_id: data.segment_id,
       name: data.name ?? null,
       contact: data.contact ?? null,
       channel: data.channel ?? "in_app",
@@ -179,6 +193,7 @@ export class SupabaseRepository implements Repository {
     const seg = await this.getSegment(follow.segment_id);
     if (seg) {
       await this.db.from(NOTIFICATIONS).insert({
+        user_id: follow.user_id ?? null,
         segment_id: seg.id,
         segment_name: seg.name,
         contact: follow.contact,
@@ -191,9 +206,10 @@ export class SupabaseRepository implements Repository {
     return follow;
   }
 
-  async listFollows(segmentId?: string): Promise<Follow[]> {
+  async listFollows(segmentId?: string, userId?: string): Promise<Follow[]> {
     let query = this.db.from(FOLLOWS).select("*");
     if (segmentId) query = query.eq("segment_id", segmentId);
+    if (userId) query = query.eq("user_id", userId);
     const { data } = await query;
     return (data ?? []) as Follow[];
   }
@@ -203,12 +219,10 @@ export class SupabaseRepository implements Repository {
     return Boolean(data && data.length);
   }
 
-  async listNotifications(limit = 50): Promise<AppNotification[]> {
-    const { data } = await this.db
-      .from(NOTIFICATIONS)
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(limit);
+  async listNotifications(limit = 50, userId?: string): Promise<AppNotification[]> {
+    let query = this.db.from(NOTIFICATIONS).select("*");
+    if (userId) query = query.eq("user_id", userId);
+    const { data } = await query.order("created_at", { ascending: false }).limit(limit);
     return (data ?? []) as AppNotification[];
   }
 

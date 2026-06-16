@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
 import { Bell, BellOff } from "lucide-react";
 
 import { RiskBadge } from "@/components/risk-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CHANNEL_LABELS } from "@/lib/labels";
 import { getRepository } from "@/lib/repository";
+import { authConfigured, getSessionUser } from "@/lib/supabase/auth-server";
 import type { AlertChannel } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +22,14 @@ function formatDateTime(iso: string | null): string {
   }).format(new Date(iso));
 }
 
-/** Central de alertas (Seção: notificações ao seguir trechos). */
+/** Central de alertas (notificações pessoais ao seguir trechos). */
 export default async function NotificacoesPage() {
+  const user = await getSessionUser();
+  if (authConfigured() && !user) redirect("/login?next=/notificacoes");
   const repo = getRepository();
   const [notifications, follows] = await Promise.all([
-    repo.listNotifications(),
-    repo.listFollows(),
+    repo.listNotifications(50, user?.id),
+    repo.listFollows(undefined, user?.id),
   ]);
 
   return (

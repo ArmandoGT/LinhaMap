@@ -1,39 +1,51 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, BellRing, LoaderCircle } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Bell, BellRing, LoaderCircle, LogIn } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { followSegment } from "@/lib/api-client";
+import { createSupabaseBrowserClient } from "@/lib/supabase/auth-browser";
 import { CHANNEL_LABELS } from "@/lib/labels";
 import { ALERT_CHANNELS, type AlertChannel } from "@/lib/types";
 
 const fieldClass =
   "h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-/** Botão "receber alertas" deste trecho (inscrição para notificações). */
+const AUTH_ENABLED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
+
+/** Botão "receber alertas" deste trecho (exige conta para não notificar todo mundo). */
 export function FollowButton({ segmentId }: { segmentId: string }) {
+  const pathname = usePathname();
+  const [authed, setAuthed] = useState<boolean>(!AUTH_ENABLED);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
   const [channel, setChannel] = useState<AlertChannel>("in_app");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!AUTH_ENABLED) return;
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data }) => setAuthed(Boolean(data.user)));
+  }, []);
 
   async function submit() {
     setLoading(true);
+    setError(null);
     try {
-      await followSegment({
-        segment_id: segmentId,
-        name: name || null,
-        contact: contact || null,
-        channel,
-      });
+      await followSegment({ segment_id: segmentId, channel });
       setDone(true);
       setOpen(false);
-    } catch {
-      /* ignora no MVP */
+    } catch (err) {
+      const msg = String(err);
+      setError(
+        /401/.test(msg) ? "Entre na sua conta para receber alertas." : "Não foi possível seguir.",
+      );
     } finally {
       setLoading(false);
     }
@@ -43,6 +55,17 @@ export function FollowButton({ segmentId }: { segmentId: string }) {
     return (
       <Button variant="secondary" disabled className="w-full">
         <BellRing /> Você está acompanhando este trecho
+      </Button>
+    );
+  }
+
+  // Não logado: leva para o login mantendo o retorno à página atual.
+  if (AUTH_ENABLED && !authed) {
+    return (
+      <Button asChild variant="outline" className="w-full">
+        <Link href={`/login?next=${encodeURIComponent(pathname)}`}>
+          <LogIn /> Entrar para receber alertas
+        </Link>
       </Button>
     );
   }
@@ -57,12 +80,6 @@ export function FollowButton({ segmentId }: { segmentId: string }) {
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border p-3">
-      <Input placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} />
-      <Input
-        placeholder="WhatsApp ou e-mail (opcional)"
-        value={contact}
-        onChange={(e) => setContact(e.target.value)}
-      />
       <select
         className={fieldClass}
         value={channel}
@@ -74,6 +91,7 @@ export function FollowButton({ segmentId }: { segmentId: string }) {
           </option>
         ))}
       </select>
+      {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button onClick={submit} disabled={loading} className="flex-1">
           {loading ? <LoaderCircle className="animate-spin" /> : <Bell />} Confirmar
@@ -83,7 +101,7 @@ export function FollowButton({ segmentId }: { segmentId: string }) {
         </Button>
       </div>
       <p className="text-[11px] text-muted-foreground">
-        E-mail e WhatsApp são simulados nesta versão — os alertas aparecem na central de
+        E-mail e WhatsApp são simulados nesta versão — os alertas aparecem na sua central de
         notificações.
       </p>
     </div>

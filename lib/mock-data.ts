@@ -193,6 +193,7 @@ export const MOCK_SEGMENTS: Segment[] = [
 export const MOCK_REPORTS: Report[] = [
   {
     id: "22222222-2222-2222-2222-000000000001",
+    user_id: null,
     reporter_name: "João Ferreira",
     phone: "(69) 99999-1001",
     road_segment_id: "11111111-1111-1111-1111-000000000001",
@@ -209,6 +210,7 @@ export const MOCK_REPORTS: Report[] = [
   },
   {
     id: "22222222-2222-2222-2222-000000000002",
+    user_id: null,
     reporter_name: "Maria Souza",
     phone: "(69) 99999-1002",
     road_segment_id: "11111111-1111-1111-1111-000000000001",
@@ -225,6 +227,7 @@ export const MOCK_REPORTS: Report[] = [
   },
   {
     id: "22222222-2222-2222-2222-000000000003",
+    user_id: null,
     reporter_name: "Cooperativa Leite Bom",
     phone: "(69) 99999-1003",
     road_segment_id: "11111111-1111-1111-1111-000000000007",
@@ -241,6 +244,7 @@ export const MOCK_REPORTS: Report[] = [
   },
   {
     id: "22222222-2222-2222-2222-000000000004",
+    user_id: null,
     reporter_name: "Pedro Lima",
     phone: "(69) 99999-1004",
     road_segment_id: "11111111-1111-1111-1111-000000000002",
@@ -257,6 +261,7 @@ export const MOCK_REPORTS: Report[] = [
   },
   {
     id: "22222222-2222-2222-2222-000000000005",
+    user_id: null,
     reporter_name: "Antônio Rocha",
     phone: "(69) 99999-1005",
     road_segment_id: "11111111-1111-1111-1111-000000000005",
@@ -273,6 +278,7 @@ export const MOCK_REPORTS: Report[] = [
   },
   {
     id: "22222222-2222-2222-2222-000000000006",
+    user_id: null,
     reporter_name: "Sebastião Alves",
     phone: "(69) 99999-1006",
     road_segment_id: "11111111-1111-1111-1111-000000000003",

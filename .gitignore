@@ -57,3 +57,5 @@ coverage/
 .coverage
 htmlcov/
 ./Docs - MD
+
+.vercel

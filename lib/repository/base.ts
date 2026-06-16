@@ -17,10 +17,13 @@ export interface ReportFilters {
   status?: string | null;
   category?: string | null;
   road_segment_id?: string | null;
+  /** Quando definido, retorna apenas as denúncias deste usuário. */
+  user_id?: string | null;
 }
 
 export interface FollowInput {
   segment_id: string;
+  user_id?: string | null;
   name?: string | null;
   contact?: string | null;
   channel?: AlertChannel;
@@ -55,9 +58,9 @@ export interface Repository {
   listProcessingLogs(limit?: number): Promise<ProcessingLog[]>;
   // Alertas / seguir trecho
   addFollow(data: FollowInput): Promise<Follow>;
-  listFollows(segmentId?: string): Promise<Follow[]>;
+  listFollows(segmentId?: string, userId?: string): Promise<Follow[]>;
   removeFollow(id: string): Promise<boolean>;
-  listNotifications(limit?: number): Promise<AppNotification[]>;
+  listNotifications(limit?: number, userId?: string): Promise<AppNotification[]>;
   // Ordens de serviço
   createWorkOrder(data: WorkOrderInput): Promise<WorkOrder>;
   listWorkOrders(status?: string): Promise<WorkOrder[]>;

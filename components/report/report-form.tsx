@@ -23,6 +23,22 @@ import {
 const fieldClass =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
+// Limites de validação dos campos da denúncia.
+const NAME_MAX = 60;
+const PHONE_MAX = 11; // dígitos (DDD + 9 dígitos)
+const DESC_MIN = 10;
+const DESC_MAX = 1000;
+
+/** Mantém apenas letras (com acento) e espaços — nome não tem número nem símbolo. */
+function sanitizeName(value: string): string {
+  return value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "").slice(0, NAME_MAX);
+}
+
+/** Mantém apenas dígitos, no máximo 11 (DDD + número). */
+function sanitizePhone(value: string): string {
+  return value.replace(/\D/g, "").slice(0, PHONE_MAX);
+}
+
 type SegmentOption = { id: string; name: string; rural_line: string };
 
 export function ReportForm({
@@ -90,8 +106,13 @@ export function ReportForm({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!form.description.trim()) {
-      setError("Descreva o problema observado.");
+    const description = form.description.trim();
+    if (description.length < DESC_MIN) {
+      setError(`Descreva o problema com pelo menos ${DESC_MIN} caracteres.`);
+      return;
+    }
+    if (form.phone && form.phone.length < 10) {
+      setError("Telefone incompleto: informe DDD + número (10 ou 11 dígitos).");
       return;
     }
     setSubmitting(true);
@@ -166,15 +187,20 @@ export function ReportForm({
         <Field label="Nome do produtor ou morador">
           <Input
             value={form.reporter_name}
-            onChange={(e) => set("reporter_name", e.target.value)}
+            onChange={(e) => set("reporter_name", sanitizeName(e.target.value))}
             placeholder="Seu nome"
+            maxLength={NAME_MAX}
+            autoComplete="name"
           />
         </Field>
         <Field label="Telefone / WhatsApp">
           <Input
             value={form.phone}
-            onChange={(e) => set("phone", e.target.value)}
-            placeholder="(69) 99999-0000"
+            onChange={(e) => set("phone", sanitizePhone(e.target.value))}
+            placeholder="69999990000"
+            inputMode="numeric"
+            maxLength={PHONE_MAX}
+            autoComplete="tel"
           />
         </Field>
       </div>
@@ -218,10 +244,14 @@ export function ReportForm({
       <Field label="Descrição do problema *">
         <Textarea
           value={form.description}
-          onChange={(e) => set("description", e.target.value)}
+          onChange={(e) => set("description", e.target.value.slice(0, DESC_MAX))}
           placeholder="Ex.: Muita lama na descida da ponte, caminhão quase atolou."
           rows={4}
+          maxLength={DESC_MAX}
         />
+        <span className="self-end text-xs text-muted-foreground">
+          {form.description.length}/{DESC_MAX}
+        </span>
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">

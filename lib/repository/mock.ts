@@ -71,6 +71,7 @@ export class MockRepository implements Repository {
   private pushNotification(seg: Segment, follow: Follow, message: string): void {
     this.notifications.push({
       id: uuid(),
+      user_id: follow.user_id ?? null,
       segment_id: seg.id,
       segment_name: seg.name,
       contact: follow.contact,
@@ -146,6 +147,7 @@ export class MockRepository implements Repository {
     if (filters.category) rows = rows.filter((r) => r.category === filters.category);
     if (filters.road_segment_id)
       rows = rows.filter((r) => String(r.road_segment_id) === String(filters.road_segment_id));
+    if (filters.user_id) rows = rows.filter((r) => r.user_id === filters.user_id);
     rows = [...rows].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
     return structuredClone(rows);
   }
@@ -213,6 +215,7 @@ export class MockRepository implements Repository {
   async addFollow(data: FollowInput): Promise<Follow> {
     const follow: Follow = {
       id: uuid(),
+      user_id: data.user_id ?? null,
       segment_id: data.segment_id,
       name: data.name ?? null,
       contact: data.contact ?? null,
@@ -226,10 +229,10 @@ export class MockRepository implements Repository {
     return structuredClone(follow);
   }
 
-  async listFollows(segmentId?: string): Promise<Follow[]> {
-    const rows = segmentId
-      ? this.follows.filter((f) => f.segment_id === segmentId)
-      : this.follows;
+  async listFollows(segmentId?: string, userId?: string): Promise<Follow[]> {
+    let rows = this.follows;
+    if (segmentId) rows = rows.filter((f) => f.segment_id === segmentId);
+    if (userId) rows = rows.filter((f) => f.user_id === userId);
     return structuredClone(rows);
   }
 
@@ -240,10 +243,10 @@ export class MockRepository implements Repository {
     return true;
   }
 
-  async listNotifications(limit = 50): Promise<AppNotification[]> {
-    const rows = [...this.notifications].sort((a, b) =>
-      b.created_at.localeCompare(a.created_at),
-    );
+  async listNotifications(limit = 50, userId?: string): Promise<AppNotification[]> {
+    const rows = [...this.notifications]
+      .filter((n) => (userId ? n.user_id === userId : true))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
     return structuredClone(rows.slice(0, limit));
   }
 
