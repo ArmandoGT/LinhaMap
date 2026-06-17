@@ -12,7 +12,7 @@ import { ReportToolbar } from "@/components/report/report-toolbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { CATEGORY_LABELS } from "@/lib/labels";
 import { getRepository } from "@/lib/repository";
-import { generateWeeklySummary } from "@/lib/services/reporting";
+import { generateWeeklySummary, WEEKLY_WINDOW_DAYS } from "@/lib/services/reporting";
 import type { ReportCategory } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,11 +27,20 @@ export default async function RelatoriosPage() {
   const [segments, reports] = await Promise.all([repo.listSegments(), repo.listReports()]);
   const { summary, generated_by, data } = await generateWeeklySummary(segments, reports);
 
+  const now = new Date();
   const generatedAt = new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "long",
     timeStyle: "short",
     timeZone: "America/Porto_Velho",
-  }).format(new Date());
+  }).format(now);
+  const fmtDay = (d: Date) =>
+    new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      timeZone: "America/Porto_Velho",
+    }).format(d);
+  const periodStart = new Date(now.getTime() - WEEKLY_WINDOW_DAYS * 86_400_000);
+  const periodLabel = `${fmtDay(periodStart)} a ${fmtDay(now)}`;
 
   const categoryEntries = Object.entries(data.reports_by_category).sort((a, b) => b[1] - a[1]);
   const maxCat = Math.max(1, ...categoryEntries.map(([, n]) => n));
@@ -50,7 +59,11 @@ export default async function RelatoriosPage() {
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
             <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-0.5 font-medium text-secondary-foreground">
-              <CalendarDays className="h-3.5 w-3.5" /> Gerado em {generatedAt}
+              <CalendarDays className="h-3.5 w-3.5" /> Período: {periodLabel} (últimos{" "}
+              {WEEKLY_WINDOW_DAYS} dias)
+            </span>
+            <span className="rounded-full bg-secondary px-3 py-0.5 font-medium text-secondary-foreground">
+              Gerado em {generatedAt}
             </span>
             <span className="rounded-full bg-secondary px-3 py-0.5 font-medium text-secondary-foreground">
               Por: {generated_by === "ia" ? "Inteligência Artificial" : "lógica do sistema"}

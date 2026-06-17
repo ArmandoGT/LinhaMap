@@ -13,7 +13,11 @@ function categoryLabel(cat: string): string {
   return (CATEGORY_LABELS[cat as ReportCategory] ?? cat).toLowerCase();
 }
 
+/** Janela do relatório "semanal" (dias). Recorta as denúncias por created_at. */
+export const WEEKLY_WINDOW_DAYS = 7;
+
 export interface WeeklyData {
+  window_days: number;
   total_segments: number;
   critical_count: number;
   high_count: number;
@@ -33,7 +37,18 @@ export interface WeeklyData {
   priority_recommendations: string[];
 }
 
-export function buildWeeklyData(segments: Segment[], reports: Report[]): WeeklyData {
+export function buildWeeklyData(
+  segments: Segment[],
+  reports: Report[],
+  now: number = Date.now(),
+): WeeklyData {
+  // Recorte semanal: só denúncias dos últimos WEEKLY_WINDOW_DAYS dias.
+  // (O risco dos trechos é o estado atual — não tem recorte temporal.)
+  const cutoff = now - WEEKLY_WINDOW_DAYS * 86_400_000;
+  const weekReports = reports.filter(
+    (r) => r.created_at != null && new Date(r.created_at).getTime() >= cutoff,
+  );
+
   const segLine = new Map(segments.map((s) => [String(s.id), s.rural_line]));
 
   const critical = segments
@@ -49,7 +64,7 @@ export function buildWeeklyData(segments: Segment[], reports: Report[]): WeeklyD
 
   const reportsByCategory: Record<string, number> = {};
   const affected: Record<string, number> = {};
-  for (const r of reports) {
+  for (const r of weekReports) {
     const cat = r.category ?? "outro";
     reportsByCategory[cat] = (reportsByCategory[cat] ?? 0) + 1;
     const line = segLine.get(String(r.road_segment_id));
@@ -73,6 +88,7 @@ export function buildWeeklyData(segments: Segment[], reports: Report[]): WeeklyD
     );
 
   return {
+    window_days: WEEKLY_WINDOW_DAYS,
     total_segments: segments.length,
     critical_count: segments.filter((s) => s.risk_level === "critico").length,
     high_count: segments.filter((s) => s.risk_level === "alto").length,
@@ -80,10 +96,10 @@ export function buildWeeklyData(segments: Segment[], reports: Report[]): WeeklyD
     critical_segments: criticalSegments,
     reports_by_category: reportsByCategory,
     affected_regions: affectedRegions,
-    reports_total: reports.length,
-    reports_open: reports.filter((r) => r.status === "aberta").length,
-    reports_in_analysis: reports.filter((r) => r.status === "em_analise").length,
-    reports_resolved: reports.filter((r) => r.status === "resolvida").length,
+    reports_total: weekReports.length,
+    reports_open: weekReports.filter((r) => r.status === "aberta").length,
+    reports_in_analysis: weekReports.filter((r) => r.status === "em_analise").length,
+    reports_resolved: weekReports.filter((r) => r.status === "resolvida").length,
     priority_recommendations: priority,
   };
 }
