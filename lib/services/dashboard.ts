@@ -48,6 +48,52 @@ export function heatPoints(reports: Report[]): Array<[number, number, number]> {
     .map((r) => [r.latitude as number, r.longitude as number, severityIntensity(r.severity)]);
 }
 
+/** Filtros do Dashboard, compartilhados entre a UI (cliente) e a exportação CSV. */
+export interface DashboardFilters {
+  ruralLine?: string;
+  riskLevel?: string;
+  status?: string;
+  category?: string;
+  origin?: string; // "with_account" | "anonymous" | ""
+  period?: string; // "all" | "1" | "7" | "30" (dias)
+}
+
+/** Filtra trechos pelos critérios aplicáveis a segmento (linha e risco). */
+export function filterSegments(segments: Segment[], f: DashboardFilters): Segment[] {
+  return segments.filter((s) => {
+    if (f.ruralLine && s.rural_line !== f.ruralLine) return false;
+    if (f.riskLevel && s.risk_level !== f.riskLevel) return false;
+    return true;
+  });
+}
+
+/**
+ * Filtra denúncias pelos critérios do Dashboard. `now` é injetável para manter
+ * a função pura/testável (default = agora). Reutilizada pela UI e pelo CSV.
+ */
+export function filterReports(
+  reports: Report[],
+  segments: Segment[],
+  f: DashboardFilters,
+  now: number = Date.now(),
+): Report[] {
+  const segLine = new Map(segments.map((s) => [String(s.id), s]));
+  return reports.filter((r) => {
+    const seg = r.road_segment_id ? segLine.get(String(r.road_segment_id)) : undefined;
+    if (f.ruralLine && seg?.rural_line !== f.ruralLine) return false;
+    if (f.riskLevel && seg?.risk_level !== f.riskLevel) return false;
+    if (f.status && r.status !== f.status) return false;
+    if (f.category && r.category !== f.category) return false;
+    if (f.origin === "with_account" && r.user_id == null) return false;
+    if (f.origin === "anonymous" && r.user_id != null) return false;
+    if (f.period && f.period !== "all" && r.created_at) {
+      const ageDays = (now - new Date(r.created_at).getTime()) / 86_400_000;
+      if (ageDays > Number(f.period)) return false;
+    }
+    return true;
+  });
+}
+
 export function reportsByCategory(reports: Report[]): Array<{ category: string; count: number }> {
   const counts: Record<string, number> = {};
   for (const r of reports) {

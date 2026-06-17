@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Download,
   FileText,
+  FilterX,
   Gauge,
   ListChecks,
   MapPinned,
@@ -16,16 +17,28 @@ import {
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { exportCsvUrl } from "@/lib/api-client";
-import { heatPoints } from "@/lib/services/dashboard";
-import { CATEGORY_LABELS, ORIGIN_LABELS, SEVERITY_LABELS, STATUS_LABELS } from "@/lib/labels";
+import {
+  buildSummary,
+  criticalSegments as computeCriticalSegments,
+  type DashboardFilters,
+  filterReports,
+  filterSegments,
+  heatPoints,
+  reportsByCategory,
+} from "@/lib/services/dashboard";
+import {
+  CATEGORY_LABELS,
+  ORIGIN_LABELS,
+  RISK_LABELS,
+  SEVERITY_LABELS,
+  STATUS_LABELS,
+} from "@/lib/labels";
 import { RISK_COLORS } from "@/lib/risk";
 import {
   REPORT_CATEGORIES,
   REPORT_STATUSES,
   RISK_LEVELS,
   type Report,
-  type RiskLevel,
   type Segment,
 } from "@/lib/types";
 
@@ -40,15 +53,6 @@ const HeatmapMap = dynamic(() => import("./heatmap-map"), {
     </div>
   ),
 });
-
-interface Summary {
-  total_segments: number;
-  critical_segments: number;
-  high_segments: number;
-  open_reports: number;
-  resolved_reports: number;
-  average_index: number;
-}
 
 const PERIODS = [
   { value: "all", label: "Todo o período" },
@@ -68,17 +72,11 @@ function formatDateTime(iso: string | null): string {
 }
 
 export function DashboardView({
-  summary,
-  criticalSegments,
   reports,
   segments,
-  categoryCounts,
 }: {
-  summary: Summary;
-  criticalSegments: Segment[];
   reports: Report[];
   segments: Segment[];
-  categoryCounts: Array<{ category: string; count: number }>;
 }) {
   const [ruralLine, setRuralLine] = useState("");
   const [riskLevel, setRiskLevel] = useState("");
@@ -96,27 +94,54 @@ export function DashboardView({
     [segments],
   );
 
-  const filtered = useMemo(() => {
-    const now = Date.now();
-    return reports.filter((r) => {
-      const seg = r.road_segment_id ? segMap.get(String(r.road_segment_id)) : undefined;
-      if (ruralLine && seg?.rural_line !== ruralLine) return false;
-      if (riskLevel && seg?.risk_level !== riskLevel) return false;
-      if (status && r.status !== status) return false;
-      if (category && r.category !== category) return false;
-      if (origin === "with_account" && r.user_id == null) return false;
-      if (origin === "anonymous" && r.user_id != null) return false;
-      if (period !== "all" && r.created_at) {
-        const ageDays = (now - new Date(r.created_at).getTime()) / 86_400_000;
-        if (ageDays > Number(period)) return false;
-      }
-      return true;
-    });
-  }, [reports, segMap, ruralLine, riskLevel, status, category, origin, period]);
+  const filters = useMemo<DashboardFilters>(
+    () => ({ ruralLine, riskLevel, status, category, origin, period }),
+    [ruralLine, riskLevel, status, category, origin, period],
+  );
 
+  // Tudo abaixo reage aos filtros: tabela, mapa de calor, cards, gráfico e críticos.
+  const filtered = useMemo(
+    () => filterReports(reports, segments, filters),
+    [reports, segments, filters],
+  );
+  const filteredSegments = useMemo(
+    () => filterSegments(segments, filters),
+    [segments, filters],
+  );
+  const summary = useMemo(
+    () => buildSummary(filteredSegments, filtered),
+    [filteredSegments, filtered],
+  );
+  const criticals = useMemo(
+    () => computeCriticalSegments(filteredSegments),
+    [filteredSegments],
+  );
+  const categoryCounts = useMemo(() => reportsByCategory(filtered), [filtered]);
   const points = useMemo(() => heatPoints(filtered), [filtered]);
-
   const maxCat = Math.max(1, ...categoryCounts.map((c) => c.count));
+
+  const hasActiveFilters = Boolean(
+    ruralLine || riskLevel || status || category || origin || period !== "all",
+  );
+  function clearFilters() {
+    setRuralLine("");
+    setRiskLevel("");
+    setStatus("");
+    setCategory("");
+    setOrigin("");
+    setPeriod("all");
+  }
+  const csvHref = useMemo(() => {
+    const qs = new URLSearchParams();
+    if (ruralLine) qs.set("rural_line", ruralLine);
+    if (riskLevel) qs.set("risk_level", riskLevel);
+    if (status) qs.set("status", status);
+    if (category) qs.set("category", category);
+    if (origin) qs.set("origin", origin);
+    if (period !== "all") qs.set("period", period);
+    const q = qs.toString();
+    return `/api/dashboard/export-csv${q ? `?${q}` : ""}`;
+  }, [ruralLine, riskLevel, status, category, origin, period]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,8 +160,8 @@ export function DashboardView({
             </Link>
           </Button>
           <Button asChild variant="outline">
-            <a href={exportCsvUrl} download>
-              <Download /> Exportar CSV
+            <a href={csvHref} download>
+              <Download /> Exportar CSV{hasActiveFilters ? " (filtrado)" : ""}
             </a>
           </Button>
           <Button asChild>
@@ -170,11 +195,11 @@ export function DashboardView({
         <Card>
           <CardContent className="flex flex-col gap-3 p-5">
             <h2 className="font-semibold">Trechos prioritários</h2>
-            {criticalSegments.length === 0 ? (
+            {criticals.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum trecho crítico no momento.</p>
             ) : (
               <ul className="flex flex-col divide-y">
-                {criticalSegments.map((s) => (
+                {criticals.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-2 py-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{s.name}</p>
@@ -246,7 +271,23 @@ export function DashboardView({
       {/* Tabela de ocorrências + filtros */}
       <Card>
         <CardContent className="flex flex-col gap-4 p-5">
-          <h2 className="font-semibold">Ocorrências recentes</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold">Ocorrências recentes</h2>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <span>
+                Mostrando {filtered.length} de {reports.length}
+              </span>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <FilterX className="h-3.5 w-3.5" /> Limpar filtros
+                </button>
+              )}
+            </div>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <select className={fieldClass} value={ruralLine} onChange={(e) => setRuralLine(e.target.value)}>
@@ -258,7 +299,7 @@ export function DashboardView({
             <select className={fieldClass} value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)}>
               <option value="">Todos os riscos</option>
               {RISK_LEVELS.map((l) => (
-                <option key={l} value={l}>{l}</option>
+                <option key={l} value={l}>{RISK_LABELS[l]}</option>
               ))}
             </select>
             <select className={fieldClass} value={status} onChange={(e) => setStatus(e.target.value)}>

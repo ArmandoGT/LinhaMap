@@ -1,7 +1,5 @@
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { getRepository } from "@/lib/repository";
-import { buildSummary, criticalSegments, reportsByCategory } from "@/lib/services/dashboard";
-import { serializeSegment } from "@/lib/services/serializers";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +14,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="container py-10">
-      <DashboardView
-        summary={buildSummary(segments, reports)}
-        criticalSegments={criticalSegments(segments).map(serializeSegment)}
-        reports={reports}
-        segments={segments}
-        categoryCounts={reportsByCategory(reports)}
-      />
+      {/* Agregados (cards/gráfico/críticos) são calculados no cliente e reagem aos filtros. */}
+      <DashboardView reports={reports} segments={segments} />
     </div>
   );
 }

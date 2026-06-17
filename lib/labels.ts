@@ -4,8 +4,16 @@ import type {
   ReportCategory,
   ReportSeverity,
   ReportStatus,
+  RiskLevel,
   WorkOrderStatus,
 } from "@/lib/types";
+
+export const RISK_LABELS: Record<RiskLevel, string> = {
+  baixo: "Baixo",
+  medio: "Médio",
+  alto: "Alto",
+  critico: "Crítico",
+};
 
 export const CHANNEL_LABELS: Record<AlertChannel, string> = {
   in_app: "No app",
