@@ -2,9 +2,12 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ChevronDown,
+  ChevronsUpDown,
+  ChevronUp,
   ClipboardList,
   Download,
   FileText,
@@ -60,6 +63,32 @@ const PERIODS = [
   { value: "7", label: "Últimos 7 dias" },
   { value: "30", label: "Últimos 30 dias" },
 ];
+
+const PAGE_SIZE = 25;
+
+type SortKey = "created_at" | "rural_line" | "category" | "severity" | "status" | "origin";
+const SEVERITY_ORDER: Record<string, number> = { baixa: 0, media: 1, alta: 2, critica: 3 };
+
+/** Comparador de duas denúncias para a coluna ordenada (ascendente). */
+function sortValue(a: Report, b: Report, key: SortKey, segMap: Map<string, Segment>): number {
+  switch (key) {
+    case "rural_line":
+      return (segMap.get(String(a.road_segment_id))?.rural_line ?? "").localeCompare(
+        segMap.get(String(b.road_segment_id))?.rural_line ?? "",
+      );
+    case "category":
+      return (CATEGORY_LABELS[a.category] ?? "").localeCompare(CATEGORY_LABELS[b.category] ?? "");
+    case "severity":
+      return (SEVERITY_ORDER[a.severity] ?? 0) - (SEVERITY_ORDER[b.severity] ?? 0);
+    case "status":
+      return a.status.localeCompare(b.status);
+    case "origin":
+      return Number(a.user_id == null) - Number(b.user_id == null);
+    case "created_at":
+    default:
+      return (a.created_at ?? "").localeCompare(b.created_at ?? "");
+  }
+}
 
 function formatDateTime(iso: string | null): string {
   if (!iso) return "—";
@@ -142,6 +171,27 @@ export function DashboardView({
     const q = qs.toString();
     return `/api/dashboard/export-csv${q ? `?${q}` : ""}`;
   }, [ruralLine, riskLevel, status, category, origin, period]);
+
+  // Ordenação da tabela (clique no cabeçalho).
+  const [sortKey, setSortKey] = useState<SortKey>("created_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "created_at" ? "desc" : "asc");
+    }
+  }
+  const sorted = useMemo(() => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...filtered].sort((a, b) => sortValue(a, b, sortKey, segMap) * dir);
+  }, [filtered, sortKey, sortDir, segMap]);
+
+  // Paginação leve: começa em PAGE_SIZE e cresce sob demanda; reseta ao mudar filtro/ordem.
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => setVisibleCount(PAGE_SIZE), [filters, sortKey, sortDir]);
+  const paged = sorted.slice(0, visibleCount);
 
   return (
     <div className="flex flex-col gap-6">
@@ -231,21 +281,33 @@ export function DashboardView({
             {categoryCounts.length === 0 ? (
               <p className="text-sm text-muted-foreground">Sem ocorrências registradas.</p>
             ) : (
-              <ul className="flex flex-col gap-2">
-                {categoryCounts.map((c) => (
-                  <li key={c.category} className="flex flex-col gap-1">
-                    <div className="flex justify-between text-sm">
-                      <span>{CATEGORY_LABELS[c.category as keyof typeof CATEGORY_LABELS] ?? c.category}</span>
-                      <span className="text-muted-foreground">{c.count}</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{ width: `${(c.count / maxCat) * 100}%` }}
-                      />
-                    </div>
-                  </li>
-                ))}
+              <ul className="flex flex-col gap-1">
+                {categoryCounts.map((c) => {
+                  const activeCat = category === c.category;
+                  return (
+                    <li key={c.category}>
+                      <button
+                        type="button"
+                        onClick={() => setCategory(activeCat ? "" : c.category)}
+                        title={activeCat ? "Remover filtro de categoria" : "Filtrar por esta categoria"}
+                        className={`flex w-full flex-col gap-1 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-accent ${
+                          activeCat ? "bg-accent" : ""
+                        }`}
+                      >
+                        <div className="flex justify-between text-sm">
+                          <span>{CATEGORY_LABELS[c.category as keyof typeof CATEGORY_LABELS] ?? c.category}</span>
+                          <span className="text-muted-foreground">{c.count}</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{ width: `${(c.count / maxCat) * 100}%` }}
+                          />
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>
@@ -330,24 +392,24 @@ export function DashboardView({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="py-2 pr-3 font-medium">Data</th>
-                  <th className="py-2 pr-3 font-medium">Trecho</th>
-                  <th className="py-2 pr-3 font-medium">Categoria</th>
-                  <th className="py-2 pr-3 font-medium">Severidade</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 pr-3 font-medium">Origem</th>
+                  <SortHeader label="Data" field="created_at" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Trecho" field="rural_line" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Categoria" field="category" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Severidade" field="severity" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Status" field="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Origem" field="origin" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <th className="py-2 font-medium">Relator</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
+                {sorted.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-6 text-center text-muted-foreground">
                       Nenhuma ocorrência para os filtros selecionados.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((r) => {
+                  paged.map((r) => {
                     const seg = r.road_segment_id ? segMap.get(String(r.road_segment_id)) : undefined;
                     return (
                       <tr key={r.id} className="border-b last:border-0">
@@ -371,9 +433,57 @@ export function DashboardView({
               </tbody>
             </table>
           </div>
+
+          {sorted.length > visibleCount && (
+            <div className="flex justify-center pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              >
+                Ver mais ({sorted.length - visibleCount} restantes)
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function SortHeader({
+  label,
+  field,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  field: SortKey;
+  sortKey: SortKey;
+  sortDir: "asc" | "desc";
+  onSort: (k: SortKey) => void;
+}) {
+  const active = sortKey === field;
+  return (
+    <th className="py-2 pr-3 font-medium">
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="inline-flex items-center gap-1 uppercase tracking-wide transition-colors hover:text-foreground"
+      >
+        {label}
+        {active ? (
+          sortDir === "asc" ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          )
+        ) : (
+          <ChevronsUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </button>
+    </th>
   );
 }
 
