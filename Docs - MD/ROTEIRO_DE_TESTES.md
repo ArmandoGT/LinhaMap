@@ -321,6 +321,23 @@ Executar após cada deploy:
 7. `/conta` deslogado → redireciona para `/login`; `POST /api/worker/reprocess-daily` sem auth → **401**.
 8. **Limpar** a conta + denúncia de teste (Apêndice B) ou restaurar seed.
 
+### Última execução — 16/06/2026 (produção, https://linha-map.vercel.app)
+
+| # | Passo | Status | Evidência |
+| --- | --- | --- | --- |
+| 1 | `/api/health` → mode | ✅ | `status: ok`, `mode: supabase` |
+| 2 | `/mapa` 8 trechos (2/2/2/2) | ✅ | `{crítico:2, alto:2, médio:2, baixo:2}` |
+| 3 | Ponte do Branco → crítico | ✅ | crítico, score 86, explicação + 4 fatores |
+| 4 | Cadastro → `/conta` (login imediato) | ✅ | redireciona para `/conta` sem confirmar e-mail |
+| 5 | Denúncia logada → Dashboard "Com conta" + frescor | ✅ | aparece na hora, com `user_id` |
+| 6 | Dashboard filtra + CSV filtrado | ✅ | CSV total=7, `?status=resolvida`=1 |
+| 7 | `/conta` deslogado → `/login` (307); worker sem auth → 401 | ✅ | ambos |
+| 8 | Limpeza dos dados de teste | ✅ | conta + denúncia removidas via SQL |
+
+> Observações: o congelamento do `DEMO_MODE` foi corrigido (o cron não erode mais o
+> mapa) e **manteve o 2/2/2/2 mesmo após criar denúncia**. Dados server-side sempre
+> frescos (`no-store`). Filtros do Dashboard 100% reativos e CSV respeitando filtros.
+
 ## 11. Registro de execução (preencher)
 
 | ID do caso | Ambiente | Data | Testador | Status | Evidência (link/print) | Observações |
