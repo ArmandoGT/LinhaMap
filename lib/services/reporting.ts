@@ -5,16 +5,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 import { aiEnabled, config } from "@/lib/config";
-import type { Report, Segment } from "@/lib/types";
+import { CATEGORY_LABELS } from "@/lib/labels";
+import type { Report, ReportCategory, Segment } from "@/lib/types";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  buraco: "buraco",
-  lama: "lama",
-  erosao: "erosão",
-  ponte_danificada: "ponte danificada",
-  atolamento: "atolamento",
-  outro: "outro",
-};
+/** Rótulo da categoria em minúsculas (fica natural no meio da frase do resumo). */
+function categoryLabel(cat: string): string {
+  return (CATEGORY_LABELS[cat as ReportCategory] ?? cat).toLowerCase();
+}
 
 export interface WeeklyData {
   total_segments: number;
@@ -108,7 +105,7 @@ function renderTextByRules(data: WeeklyData): string {
 
   const cats = Object.entries(data.reports_by_category).sort((a, b) => b[1] - a[1]);
   if (cats.length) {
-    const catTxt = cats.map(([c, n]) => `${n} de ${CATEGORY_LABELS[c] ?? c}`).join(", ");
+    const catTxt = cats.map(([c, n]) => `${n} de ${categoryLabel(c)}`).join(", ");
     blocos.push(
       `Foram registradas ${data.reports_total} ocorrências (${data.reports_open} abertas, ` +
         `${data.reports_resolved} resolvidas), distribuídas por categoria: ${catTxt}.`,

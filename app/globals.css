@@ -92,3 +92,18 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* Impressão / PDF — documento limpo para ata/ofício (usado em /relatorios). */
+@media print {
+  /* Preserva cores de selos, barras e badges no PDF. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page {
+    margin: 1.5cm;
+  }
+  body {
+    background: #fff;
+  }
+}
