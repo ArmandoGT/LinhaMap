@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, LoaderCircle, MapPin, Upload } from "lucide-react";
 
 import { RiskBadge } from "@/components/risk-badge";
@@ -64,6 +64,19 @@ export function ReportForm({
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Mostra o atalho "Minhas denúncias" só quando há sessão (senão iria pro login).
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/me", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => active && setAuthed(Boolean(d?.authenticated)))
+      .catch(() => active && setAuthed(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -164,6 +177,11 @@ export function ReportForm({
             <Button asChild>
               <Link href="/mapa">Ver no mapa</Link>
             </Button>
+            {authed && (
+              <Button asChild variant="outline">
+                <Link href="/conta">Minhas denúncias</Link>
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => {

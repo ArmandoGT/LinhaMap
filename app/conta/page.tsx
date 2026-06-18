@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Bell, BellOff, FileText, MapPin } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { RefreshOnShow } from "@/components/refresh-on-show";
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,6 +53,8 @@ export default async function ContaPage() {
 
   return (
     <div className="container max-w-3xl py-10">
+      {/* Mantém "Minhas denúncias" fresco ao voltar (bfcache) / reabrir a aba. */}
+      <RefreshOnShow />
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
