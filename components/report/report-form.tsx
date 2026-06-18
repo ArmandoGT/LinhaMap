@@ -167,11 +167,6 @@ export function ReportForm({
             <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium">
               Severidade: {SEVERITY_LABELS[result.severity]}
             </span>
-            {result.confidence != null && (
-              <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium">
-                Confiança: {(result.confidence * 100).toFixed(0)}%
-              </span>
-            )}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
             <Button asChild>

@@ -7,7 +7,7 @@ import { RefreshOnShow } from "@/components/refresh-on-show";
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CATEGORY_LABELS, CHANNEL_LABELS, SEVERITY_LABELS } from "@/lib/labels";
+import { CATEGORY_LABELS, CHANNEL_LABELS, SEVERITY_LABELS, STATUS_LABELS } from "@/lib/labels";
 import { getRepository } from "@/lib/repository";
 import { authConfigured, getSessionProfile } from "@/lib/supabase/auth-server";
 import type { AlertChannel } from "@/lib/types";
@@ -189,7 +189,9 @@ export default async function ContaPage() {
                       </span>
                     </div>
                     {r.description && <p className="text-sm">{r.description}</p>}
-                    <span className="text-xs text-muted-foreground">Status: {r.status}</span>
+                    <span className="text-xs text-muted-foreground">
+                      Status: {STATUS_LABELS[r.status]}
+                    </span>
                   </CardContent>
                 </Card>
               </li>

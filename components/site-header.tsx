@@ -19,6 +19,7 @@ const AUTH_ENABLED = Boolean(
 // Links abertos a todos os visitantes.
 const CITIZEN_NAV = [
   { href: "/", label: "Início" },
+  { href: "/resumo", label: "Resumo" },
   { href: "/mapa", label: "Mapa" },
   { href: "/trajeto", label: "Trajeto" },
   { href: "/denuncia", label: "Denúncia" },

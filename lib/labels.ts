@@ -55,3 +55,21 @@ export const ORIGIN_LABELS = {
   with_account: "Com conta",
   anonymous: "Anônima",
 } as const;
+
+/**
+ * Veredito em linguagem leiga para o produtor (tela /resumo), derivado do
+ * `risk_level`. Evita o número 0–100 (que é risco, "maior = pior", e confunde).
+ */
+export const PASSABILITY_VERDICT: Record<RiskLevel, { emoji: string; titulo: string; sub: string }> = {
+  baixo: { emoji: "🟢", titulo: "Boa passagem", sub: "Dá pra trafegar normalmente." },
+  medio: { emoji: "🟡", titulo: "Passa com atenção", sub: "Tem pontos que pedem cuidado." },
+  alto: { emoji: "🟠", titulo: "Passagem difícil", sub: "Evite se puder — risco de atolar." },
+  critico: { emoji: "🔴", titulo: "Risco de ficar preso", sub: "Quase intransitável agora." },
+};
+
+/** O que acontece com a denúncia em cada status (linguagem para o cidadão). */
+export const STATUS_NEXT: Record<ReportStatus, string> = {
+  aberta: "Recebemos sua denúncia. Em breve a equipe vai avaliar.",
+  em_analise: "A equipe está avaliando o que você relatou.",
+  resolvida: "Problema resolvido. Obrigado por avisar!",
+};
