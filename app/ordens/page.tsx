@@ -1,16 +1,22 @@
+import { redirect } from "next/navigation";
+
 import { WorkOrdersBoard } from "@/components/work-order/work-orders-board";
 import { getRepository } from "@/lib/repository";
+import { checkSecretariaAccess } from "@/lib/supabase/auth-server";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Ordens de Serviço — LinhaMap" };
 
-/** Ordens de serviço de manutenção (Secretaria de Obras). */
+/** Ordens de serviço de manutenção (Secretaria de Obras). Só Secretaria acessa. */
 export default async function OrdensPage({
   searchParams,
 }: {
   searchParams: { segment?: string };
 }) {
+  const access = await checkSecretariaAccess();
+  if (!access.allow) redirect(access.status === 401 ? "/login?next=/ordens" : "/?forbidden=1");
+
   const repo = getRepository();
   const [orders, segments] = await Promise.all([
     repo.listWorkOrders(),

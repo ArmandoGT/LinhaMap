@@ -22,6 +22,10 @@ export type ReportSeverity = (typeof REPORT_SEVERITIES)[number];
 export const REPORT_STATUSES = ["aberta", "em_analise", "resolvida"] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
 
+/** Papel da conta: cidadão (denuncia/segue) vs secretaria (back-office). */
+export const USER_ROLES = ["cidadao", "secretaria"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
 /** Coordenada [lon, lat] (padrão GeoJSON). */
 export type Coordinate = [number, number];
 

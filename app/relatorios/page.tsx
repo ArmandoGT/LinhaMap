@@ -8,11 +8,14 @@ import {
   ShieldAlert,
 } from "lucide-react";
 
+import { redirect } from "next/navigation";
+
 import { ReportToolbar } from "@/components/report/report-toolbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { CATEGORY_LABELS } from "@/lib/labels";
 import { getRepository } from "@/lib/repository";
 import { generateWeeklySummary, WEEKLY_WINDOW_DAYS } from "@/lib/services/reporting";
+import { checkSecretariaAccess } from "@/lib/supabase/auth-server";
 import type { ReportCategory } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +24,11 @@ export const metadata = {
   title: "Relatório Semanal — LinhaMap",
 };
 
-/** Relatório semanal para a Secretaria (Seção 6.7). */
+/** Relatório semanal para a Secretaria (Seção 6.7). Só Secretaria acessa. */
 export default async function RelatoriosPage() {
+  const access = await checkSecretariaAccess();
+  if (!access.allow) redirect(access.status === 401 ? "/login?next=/relatorios" : "/?forbidden=1");
+
   const repo = getRepository();
   const [segments, reports] = await Promise.all([repo.listSegments(), repo.listReports()]);
   const { summary, generated_by, data } = await generateWeeklySummary(segments, reports);

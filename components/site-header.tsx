@@ -2,25 +2,60 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { AuthNav } from "@/components/auth/auth-nav";
 import { LogoMark, Wordmark } from "@/components/brand";
 import { NotificationBell } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
+import { createSupabaseBrowserClient } from "@/lib/supabase/auth-browser";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+const AUTH_ENABLED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
+
+// Links abertos a todos os visitantes.
+const CITIZEN_NAV = [
   { href: "/", label: "Início" },
   { href: "/mapa", label: "Mapa" },
   { href: "/trajeto", label: "Trajeto" },
   { href: "/denuncia", label: "Denúncia" },
+];
+// Back-office — só aparece para a Secretaria.
+const SECRETARIA_NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/relatorios", label: "Relatórios" },
-  { href: "/sobre", label: "Sobre" },
+  { href: "/ordens", label: "Ordens" },
 ];
+const TAIL_NAV = [{ href: "/sobre", label: "Sobre" }];
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [isSecretaria, setIsSecretaria] = useState(false);
+
+  // Busca o papel da sessão (/api/me) e re-busca quando o login/logout muda.
+  useEffect(() => {
+    let active = true;
+    const refresh = () =>
+      fetch("/api/me", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((d) => active && setIsSecretaria(d?.role === "secretaria"))
+        .catch(() => active && setIsSecretaria(false));
+
+    refresh();
+    if (!AUTH_ENABLED) return () => {
+      active = false;
+    };
+    const supabase = createSupabaseBrowserClient();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => refresh());
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const NAV = [...CITIZEN_NAV, ...(isSecretaria ? SECRETARIA_NAV : []), ...TAIL_NAV];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 print:hidden">

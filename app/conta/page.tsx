@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CATEGORY_LABELS, CHANNEL_LABELS, SEVERITY_LABELS } from "@/lib/labels";
 import { getRepository } from "@/lib/repository";
-import { authConfigured, getSessionUser } from "@/lib/supabase/auth-server";
+import { authConfigured, getSessionProfile } from "@/lib/supabase/auth-server";
 import type { AlertChannel } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -38,8 +38,10 @@ export default async function ContaPage() {
     );
   }
 
-  const user = await getSessionUser();
-  if (!user) redirect("/login?next=/conta");
+  const profile = await getSessionProfile();
+  if (!profile) redirect("/login?next=/conta");
+  const { user, role } = profile;
+  const isSecretaria = role === "secretaria";
 
   const repo = getRepository();
   const [reports, follows, notifications] = await Promise.all([
@@ -52,11 +54,36 @@ export default async function ContaPage() {
     <div className="container max-w-3xl py-10">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold tracking-tight">Minha conta</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">Minha conta</h1>
+            <span
+              className={
+                isSecretaria
+                  ? "rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary"
+                  : "rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground"
+              }
+            >
+              {isSecretaria ? "Secretaria de Obras" : "Cidadão"}
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
         <LogoutButton variant="outline" />
       </div>
+
+      {isSecretaria && (
+        <div className="mb-8 flex flex-wrap gap-2">
+          <Button asChild size="sm">
+            <Link href="/dashboard">Abrir dashboard</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/ordens">Ordens de serviço</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/relatorios">Relatório semanal</Link>
+          </Button>
+        </div>
+      )}
 
       {/* Notificações */}
       <section className="mb-8">

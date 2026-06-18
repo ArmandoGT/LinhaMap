@@ -1,12 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getRepository } from "@/lib/repository";
+import { requireSecretariaApi } from "@/lib/supabase/auth-server";
 import { filterReports, reportsToCsv } from "@/lib/services/dashboard";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/dashboard/export-csv — exporta as denúncias (respeita os filtros do Dashboard). */
+/** GET /api/dashboard/export-csv — exporta as denúncias (respeita os filtros do Dashboard). Secretaria. */
 export async function GET(req: NextRequest) {
+  const guard = await requireSecretariaApi();
+  if (!guard.ok) return guard.response;
+
   const repo = getRepository();
   const [segments, reports] = await Promise.all([repo.listSegments(), repo.listReports()]);
   const sp = req.nextUrl.searchParams;
