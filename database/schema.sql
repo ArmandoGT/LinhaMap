@@ -69,8 +69,10 @@ $$ language plpgsql;
 -- profundidade para acesso direto anon/PostgREST.
 --
 -- NOTA: o trigger `on_auth_user_created` (cria o profile no cadastro) e o
--- backfill dos usuários existentes vivem na migration `add_profiles_and_roles`,
--- pois operam sobre o schema `auth` (não reproduzível por este script).
+-- backfill dos usuários existentes vivem nas migrations `add_profiles_and_roles`
+-- e `signup_role_from_metadata`, pois operam sobre o schema `auth` (não
+-- reproduzível por este script). Na DEMO, o trigger lê o papel escolhido no
+-- cadastro de `raw_user_meta_data->>'role'` (default `cidadao`).
 -- ===========================================================================
 create table profiles (
     id          uuid        primary key references auth.users(id) on delete cascade,
