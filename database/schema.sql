@@ -19,6 +19,7 @@ drop table if exists weather_snapshots cascade;
 drop table if exists reports            cascade;
 drop table if exists processing_logs    cascade;
 drop table if exists road_segments      cascade;
+drop table if exists profiles           cascade;
 
 drop type if exists risk_level        cascade;
 drop type if exists report_category   cascade;
@@ -26,6 +27,7 @@ drop type if exists report_severity   cascade;
 drop type if exists report_status     cascade;
 drop type if exists alert_channel     cascade;
 drop type if exists work_order_status cascade;
+drop type if exists user_role         cascade;
 
 -- Tipos enumerados (domínios de negócio) ------------------------------------
 -- Níveis de risco derivados do Índice de Trafegabilidade (0-100).
@@ -46,6 +48,9 @@ create type alert_channel   as enum ('in_app', 'email', 'whatsapp');
 -- Ciclo de vida de uma ordem de serviço de manutenção.
 create type work_order_status as enum ('agendada', 'em_execucao', 'concluida', 'cancelada');
 
+-- Papel da conta: cidadão (denuncia/segue) vs secretaria (back-office).
+create type user_role as enum ('cidadao', 'secretaria');
+
 -- ===========================================================================
 -- Função utilitária: mantém updated_at sempre atualizado em UPDATE
 -- ===========================================================================
@@ -56,6 +61,29 @@ begin
   return new;
 end;
 $$ language plpgsql;
+
+-- ===========================================================================
+-- Tabela: profiles  (papel de cada conta — cidadao | secretaria)
+-- 1:1 com auth.users. A proteção real do back-office é na camada de aplicação
+-- (o app acessa via service-role, que BYPASSA o RLS); o RLS aqui é defesa em
+-- profundidade para acesso direto anon/PostgREST.
+--
+-- NOTA: o trigger `on_auth_user_created` (cria o profile no cadastro) e o
+-- backfill dos usuários existentes vivem na migration `add_profiles_and_roles`,
+-- pois operam sobre o schema `auth` (não reproduzível por este script).
+-- ===========================================================================
+create table profiles (
+    id          uuid        primary key references auth.users(id) on delete cascade,
+    role        user_role   not null default 'cidadao',
+    created_at  timestamptz not null default now()
+);
+
+comment on table profiles is 'Papel de cada conta. cidadao = denuncia/segue; secretaria = back-office.';
+
+alter table profiles enable row level security;
+-- Cada usuário lê apenas o próprio profile (policy não-recursiva).
+create policy profiles_select_own on profiles
+    for select using (auth.uid() = id);
 
 -- ===========================================================================
 -- Tabela: road_segments  (trechos das linhas vicinais monitorados)
@@ -96,6 +124,7 @@ create trigger trg_road_segments_updated_at
 -- ===========================================================================
 create table reports (
     id              uuid primary key default gen_random_uuid(),
+    user_id         uuid references auth.users(id) on delete set null, -- conta que denunciou (null = anônima)
     reporter_name   text,
     phone           text,
     road_segment_id uuid references road_segments(id) on delete set null,
@@ -160,6 +189,7 @@ create index idx_processing_logs_date on processing_logs (execution_date desc);
 -- ===========================================================================
 create table follows (
     id              uuid primary key default gen_random_uuid(),
+    user_id         uuid references auth.users(id) on delete cascade,  -- conta que segue o trecho
     road_segment_id uuid references road_segments(id) on delete cascade,
     segment_id      uuid,                       -- espelho usado pela API (= road_segment_id)
     name            text,
@@ -176,6 +206,7 @@ create index idx_follows_segment on follows (segment_id);
 -- ===========================================================================
 create table notifications (
     id           uuid primary key default gen_random_uuid(),
+    user_id      uuid references auth.users(id) on delete cascade, -- destinatário (conta seguidora)
     segment_id   uuid,
     segment_name text,
     contact      text,
