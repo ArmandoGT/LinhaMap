@@ -55,6 +55,9 @@ export function SiteHeader() {
     };
   }, []);
 
+  // Telas de autenticação usam layout imersivo (split-screen) sem o cabeçalho.
+  if (pathname === "/login" || pathname === "/cadastro") return null;
+
   const NAV = [...CITIZEN_NAV, ...(isSecretaria ? SECRETARIA_NAV : []), ...TAIL_NAV];
 
   return (

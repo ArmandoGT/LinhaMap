@@ -10,8 +10,16 @@
 | `cidadao`    | Produtor/morador (padrão)      | Mapa, Trajeto, **Denúncia**, "Minha conta" (minhas denúncias, follows, notificações) |
 | `secretaria` | Secretaria de Obras (operador) | Tudo do cidadão **+ back-office**: Dashboard, Relatórios, Ordens de serviço, mudar status de denúncia, recalcular trechos, exportar CSV |
 
-Toda conta nova nasce `cidadao` (trigger `on_auth_user_created`). A promoção a
-`secretaria` é **manual**.
+Por padrão toda conta nova nasce `cidadao` (trigger `on_auth_user_created`) e a
+promoção a `secretaria` é **manual**.
+
+> ⚠️ **Modo demo (hackathon):** a tela de **cadastro** deixa a pessoa escolher o
+> perfil ("Comunidade" ou "Secretaria de Obras") para conhecer os dois lados do
+> produto. O `signUp` envia `options.data.role` e a migração
+> `signup_role_from_metadata` faz o trigger ler esse papel de
+> `raw_user_meta_data->>'role'` (valida contra o enum; default `cidadao`).
+> Isto permite qualquer um se cadastrar como secretaria — **intencional só para a
+> demo**. Para produção real, ver "Desativar a escolha de perfil" abaixo.
 
 ## Modelo técnico (resumo)
 
@@ -52,4 +60,23 @@ order by p.role desc, u.email;
 | `topolniak@gmail.com`       | `cidadao`    | Demonstrar a visão restrita do cidadão |
 
 > Senhas **não** são versionadas. Para uma conta de secretaria nova, cadastre pelo
-> `/cadastro` e rode o `update` acima.
+> `/cadastro` (escolhendo "Secretaria de Obras") ou rode o `update` acima.
+
+## Desativar a escolha de perfil (para produção real)
+
+Quando a demo terminar e o cadastro aberto não for mais desejado:
+
+1. **UI:** esconder os cards de perfil em `components/auth/auth-form.tsx` (constante
+   `PROFILES` / bloco do seletor) — ou fixar `role = "cidadao"`.
+2. **Banco:** reverter o trigger para inserir sempre `cidadao` (desfaz
+   `signup_role_from_metadata`):
+   ```sql
+   create or replace function handle_new_user()
+   returns trigger language plpgsql security definer set search_path = public as $$
+   begin
+     insert into profiles (id, role) values (new.id, 'cidadao')
+     on conflict (id) do nothing;
+     return new;
+   end; $$;
+   ```
+3. Promover secretarias só pelo `update profiles ...` manual (seção acima).
