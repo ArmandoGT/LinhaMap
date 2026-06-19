@@ -4,8 +4,9 @@ Agente conversacional no WhatsApp que recebe áudio/foto/texto informal de produ
 caminhoneiros e registra a denúncia na API do LinhaMap, fazendo o ponto aparecer no mapa
 e disparando o recálculo de risco do trecho.
 
-- **Canal:** Evolution API / Z-API (não-oficial, conecta por QR — sem verificação Meta).
-- **Orquestração:** N8N.
+- **Canal:** **WAHA** (`waha.devlike.pro`, não-oficial, conecta por QR — Core grátis/Docker).
+  _(O plano original cogitava Evolution/Z-API; migrou-se para WAHA — ver seção 8.)_
+- **Orquestração:** N8N. **Status:** construído e **ativo** (workflow `LinhaMap`, ver seção 8).
 - **Backend:** reaproveita `POST /api/reports` (nenhuma mudança no app).
 - **Classificação (categoria/severidade):** delegada ao backend — o N8N **não** envia esses
   campos; a rota chama `classifyReport(description, image_url)` (IA com visão) e preenche.
@@ -211,7 +212,11 @@ usuário. Seu papel é acolher, entender o relato e garantir o local.
 
 ---
 
-## 7. Versão mínima (MVP) — pronta para aplicar
+## 7. Versão mínima (plano original — canal Evolution) — ⚠️ SUPERADA pela seção 8
+
+> Esta seção é o **rascunho inicial** (canal Evolution, sem gatilho). A implementação real,
+> já construída e ativa, está na **seção 8** (WAHA + gatilho `linhamap-hackathon` + 3
+> comportamentos). Mantida aqui só como referência histórica.
 
 Escopo do MVP: **só texto**, loop fechado WhatsApp → denúncia no mapa. Sem áudio, sem foto,
 sem conversa multi-balão (otimizações posteriores). 4 nós:
@@ -310,3 +315,68 @@ return [{ json: {
 Mandar no Webhook (POST) um corpo simulando texto: `{"message":"muita lama na descida da ponte C-65"}`
 → o Code resolve `…0001` (Ponte do Branco) → POST 201 → resposta de confirmação.
 ```
+
+---
+
+## 8. Como ficou (as-built) — WAHA + gatilho `linhamap-hackathon`
+
+> **Status:** construído via MCP do n8n e **publicado/ativo**. Workflow **LinhaMap**
+> (`id=A5dYy1r3P40MKBRY`). Canal: **WAHA**. Escopo: **só texto**.
+> Webhook de produção: `https://armandoifro.app.n8n.cloud/webhook/linhamap-zap`
+
+Como o número usado é **pessoal**, o fluxo só age quando a mensagem **começa** com a
+palavra-gatilho `linhamap-hackathon`. Todo o resto é ignorado (`return []`, sem resposta) —
+assim o WhatsApp pessoal não é incomodado por conversas normais.
+
+### Fluxo (5 nós)
+```
+Webhook (POST /linhamap-zap) → Code "Interpretar e Resolver Trecho" → IF "Tem trecho?"
+   ├─ [ok=true]  → HTTP "Registrar Denuncia" (POST /api/reports) → HTTP "Responder no WhatsApp"
+   └─ [ok=false] → HTTP "Responder no WhatsApp"
+```
+
+### 3 comportamentos (decididos no Code, campo `mode`)
+- **`registered`** — tem linha (ex.: `linhamap-hackathon muita lama na ponte C-65`) → registra + confirma.
+- **`help`** — saudação/ajuda (`olá`, `tudo bem`, `como faço`, `quero denunciar`, `como funciona`,
+  ou só o gatilho) → envia um **tutorial** de como denunciar. **Não** posta.
+- **`ask_line`** — descreveu um problema mas sem linha → pede a linha.
+
+Só `registered` tem `ok=true`; o IF "Tem trecho?" roteia por `ok` (true → registra; false → só responde).
+
+### [1] Webhook
+`httpMethod: POST` · `path: linhamap-zap` · `responseMode: onReceived`.
+
+### [2] Code "Interpretar e Resolver Trecho" (lê payload **WAHA**)
+- Gatilho: `const TRIGGER = "linhamap-hackathon"` (alterar aqui para mudar a palavra).
+- Lê `body.payload.body` (texto), `body.payload.from` (chatId `…@c.us`), `body.payload.notifyName`.
+- **Ecoa o `from` recebido como `chatId`** na resposta → evita o bug do 9º dígito de número BR.
+- Resolve a linha com `resolveSegment` (lookup da seção 2; chaves `linha c-65`, `linha 60`, etc.,
+  com desambiguação da C-65 por `ponte`/`serra`).
+- Calcula `mode` (`registered`/`help`/`ask_line`) e o `reply`. Sem gatilho → `return []`.
+
+### [3] HTTP "Registrar Denuncia" (só no ramo `ok=true`)
+`POST https://linha-map.vercel.app/api/reports` · Body JSON = `={{ JSON.stringify($json.payload) }}`
+(sem `category`/`severity` → backend classifica). **Sem credencial** (endpoint aberto).
+
+### [4] HTTP "Responder no WhatsApp" (**WAHA** sendText)
+- `POST {WAHA_URL}/api/sendText`
+- **Auth:** Header Auth com header `X-Api-Key` (credencial criada no n8n).
+- **Body JSON:** `={{ JSON.stringify({ session: 'default', chatId: $('Interpretar e Resolver Trecho').item.json.chatId, text: $('Interpretar e Resolver Trecho').item.json.reply }) }}`
+
+### Ligar a WAHA ao n8n
+1. Subir WAHA (Core grátis/Docker). Precisa de **URL pública** — o n8n cloud tem que alcançar
+   o `sendText` (PC local só com túnel ngrok/cloudflared, ou VPS/Railway). Definir `WAHA_API_KEY`.
+2. Criar a sessão apontando o webhook (evento `message`) para o Webhook de produção:
+   ```json
+   POST {WAHA}/api/sessions
+   { "name": "default", "config": { "webhooks": [{ "url": "https://armandoifro.app.n8n.cloud/webhook/linhamap-zap", "events": ["message"] }] } }
+   ```
+3. Escanear o QR com o WhatsApp.
+
+### Demonstrar
+- `linhamap-hackathon muita lama na ponte da C-65` → denúncia no mapa (Ponte do Branco) + confirmação.
+- `linhamap-hackathon olá` / `como faço uma denúncia?` → recebe o **tutorial**.
+- Mensagem **sem** o gatilho → ignorada.
+
+> ⚠️ Os campos do payload variam por **engine** da WAHA (WEBJS/NOWEB/GOWS). No 1º disparo real,
+> conferir o JSON que chega no Webhook e ajustar os paths (`body.payload.*`) no Code se preciso.
