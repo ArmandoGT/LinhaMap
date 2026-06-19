@@ -41,6 +41,18 @@ function sanitizePhone(value: string): string {
   return value.replace(/\D/g, "").slice(0, PHONE_MAX);
 }
 
+/** Formata os dígitos para exibição no padrão (69) 9 9999-9999. */
+function formatPhone(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, PHONE_MAX);
+  if (!d) return "";
+  let out = "(" + d.slice(0, 2);
+  if (d.length === 2) out += ")";
+  if (d.length > 2) out += ") " + d.slice(2, 3);
+  if (d.length > 3) out += " " + d.slice(3, 7);
+  if (d.length > 7) out += "-" + d.slice(7, 11);
+  return out;
+}
+
 type SegmentOption = { id: string; name: string; rural_line: string };
 
 export function ReportForm({
@@ -112,7 +124,9 @@ export function ReportForm({
         setLocating(false);
       },
       () => {
-        setError("Não foi possível obter a localização. Preencha manualmente.");
+        setError(
+          "Não foi possível obter a localização. Tente novamente ou selecione o trecho acima.",
+        );
         setLocating(false);
       },
     );
@@ -259,11 +273,11 @@ export function ReportForm({
         </Field>
         <Field label="Telefone / WhatsApp">
           <Input
-            value={form.phone}
+            value={formatPhone(form.phone)}
             onChange={(e) => set("phone", sanitizePhone(e.target.value))}
-            placeholder="69999990000"
+            placeholder="(69) 9 9999-9999"
             inputMode="numeric"
-            maxLength={PHONE_MAX}
+            maxLength={16}
             autoComplete="tel"
           />
         </Field>
@@ -284,24 +298,36 @@ export function ReportForm({
         </select>
       </Field>
 
-      <Field label="Localização (GPS)">
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Input
-            value={form.latitude}
-            onChange={(e) => set("latitude", e.target.value)}
-            placeholder="Latitude"
-            inputMode="decimal"
-          />
-          <Input
-            value={form.longitude}
-            onChange={(e) => set("longitude", e.target.value)}
-            placeholder="Longitude"
-            inputMode="decimal"
-          />
-          <Button type="button" variant="outline" onClick={useMyLocation} disabled={locating}>
+      <Field label="Localização">
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={useMyLocation}
+            disabled={locating}
+            className="sm:w-fit"
+          >
             {locating ? <LoaderCircle className="animate-spin" /> : <MapPin />}
             Usar minha localização
           </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={form.latitude}
+              readOnly
+              tabIndex={-1}
+              placeholder="Latitude"
+              aria-label="Latitude (preenchida automaticamente)"
+              className="cursor-not-allowed bg-muted text-muted-foreground"
+            />
+            <Input
+              value={form.longitude}
+              readOnly
+              tabIndex={-1}
+              placeholder="Longitude"
+              aria-label="Longitude (preenchida automaticamente)"
+              className="cursor-not-allowed bg-muted text-muted-foreground"
+            />
+          </div>
         </div>
       </Field>
 
