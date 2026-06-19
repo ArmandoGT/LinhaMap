@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, FileText, LogIn, MapPin, Megaphone, Plus } from "lucide-react";
 
+import { FollowButton } from "@/components/map/follow-button";
 import { RefreshOnShow } from "@/components/refresh-on-show";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,8 +58,12 @@ export default async function ResumoPage() {
         <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold">
           <MapPin className="h-5 w-5" /> Situação das estradas
         </h2>
-        <p className="mb-3 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           🟢 boa · 🟡 com atenção · 🟠 difícil · 🔴 risco de ficar preso
+        </p>
+        <p className="mb-3 text-sm text-muted-foreground">
+          🔔 Toque em <strong>“Receber alertas”</strong> na sua linha para ser avisado quando o
+          risco aumentar.
         </p>
         <ul className="flex flex-col gap-3">
           {ordered.map((seg) => {
@@ -66,24 +71,27 @@ export default async function ResumoPage() {
             return (
               <li key={seg.id}>
                 <Card>
-                  <CardContent className="flex items-start gap-3 p-4">
-                    <span className="text-2xl leading-none" aria-hidden>
-                      {v.emoji}
-                    </span>
-                    <div className="flex flex-1 flex-col gap-0.5">
-                      <div className="flex flex-wrap items-baseline gap-x-2">
-                        <span
-                          className="text-base font-bold"
-                          style={{ color: RISK_COLORS[seg.risk_level] }}
-                        >
-                          {v.titulo}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          — {seg.rural_line} · {seg.name}
-                        </span>
+                  <CardContent className="flex flex-col gap-3 p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl leading-none" aria-hidden>
+                        {v.emoji}
+                      </span>
+                      <div className="flex flex-1 flex-col gap-0.5">
+                        <div className="flex flex-wrap items-baseline gap-x-2">
+                          <span
+                            className="text-base font-bold"
+                            style={{ color: RISK_COLORS[seg.risk_level] }}
+                          >
+                            {v.titulo}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            — {seg.rural_line} · {seg.name}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{seg.explanation ?? v.sub}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{seg.explanation ?? v.sub}</p>
                     </div>
+                    <FollowButton segmentId={seg.id} />
                   </CardContent>
                 </Card>
               </li>

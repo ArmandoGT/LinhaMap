@@ -106,7 +106,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           return;
         }
         // Leva a pessoa direto ao que o perfil escolhido desbloqueia.
-        const dest = nextParam || (role === "secretaria" ? "/dashboard" : "/conta");
+        const dest = nextParam || (role === "secretaria" ? "/dashboard" : "/resumo");
         router.push(dest);
         router.refresh();
         return;
@@ -342,9 +342,9 @@ async function destinationForSession(): Promise<string> {
   try {
     const res = await fetch("/api/me", { cache: "no-store" });
     const data = await res.json();
-    return data?.role === "secretaria" ? "/dashboard" : "/conta";
+    return data?.role === "secretaria" ? "/dashboard" : "/resumo";
   } catch {
-    return "/conta";
+    return "/resumo";
   }
 }
 

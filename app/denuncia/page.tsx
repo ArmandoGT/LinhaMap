@@ -1,4 +1,6 @@
 import { ReportForm } from "@/components/report/report-form";
+import { WhatsappCta } from "@/components/whatsapp-cta";
+import { Card, CardContent } from "@/components/ui/card";
 import { getRepository } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,22 @@ export default async function DenunciaPage({
           trecho e ajuda a Secretaria a priorizar a manutenção.
         </p>
       </div>
+
+      <Card className="mb-6 border-primary/30 bg-primary/5">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            📷 Sem sinal na sua linha? Tire a foto pelo celular e registre aqui assim que
+            pegar Wi-Fi ou chegar na cidade.
+          </p>
+          <WhatsappCta
+            label="Denunciar pelo WhatsApp"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+          />
+        </CardContent>
+      </Card>
+
       <ReportForm segments={segments} preselectedSegmentId={searchParams.segment} />
     </div>
   );

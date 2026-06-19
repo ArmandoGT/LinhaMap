@@ -15,6 +15,7 @@ import {
 
 import { LogoMark } from "@/components/brand";
 import { RiskBadge } from "@/components/risk-badge";
+import { WhatsappCta } from "@/components/whatsapp-cta";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getRepository } from "@/lib/repository";
@@ -57,6 +58,7 @@ export default async function Home() {
                 <Megaphone /> Registrar denúncia
               </Link>
             </Button>
+            <WhatsappCta label="Denunciar pelo Zap" size="lg" />
           </div>
 
           {/* Stats ao vivo */}
