@@ -14,12 +14,12 @@ const WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(
  * Entrada de baixíssima fricção para o produtor rural. Só renderiza quando
  * `NEXT_PUBLIC_WHATSAPP_NUMBER` está definido (ex.: na Vercel).
  *
- * Observação: hoje apenas abre a conversa — o processamento por IA (áudio/foto)
- * é visão de arquitetura, não MVP.
+ * O texto pronto já vem com a palavra-chave do agente (`linhamap-hackathon`),
+ * que ativa o fluxo no n8n/WAHA — o assistente responde guiando a denúncia.
  */
 export function WhatsappCta({
   label = "Denunciar pelo Zap",
-  message = "Quero registrar um problema na minha linha.",
+  message = "linhamap-hackathon quero denunciar",
   size = "lg",
   variant = "secondary",
   className,
