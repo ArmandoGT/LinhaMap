@@ -208,4 +208,105 @@ usuário. Seu papel é acolher, entender o relato e garantir o local.
   N8N (a UI usa 2 MB) para não estourar o payload.
 - **Estado de conversa** deve ser por `from` (telefone) para a conversa multi-balão não
   perder o contexto do que já foi dito.
+
+---
+
+## 7. Versão mínima (MVP) — pronta para aplicar
+
+Escopo do MVP: **só texto**, loop fechado WhatsApp → denúncia no mapa. Sem áudio, sem foto,
+sem conversa multi-balão (otimizações posteriores). 4 nós:
+
+```
+[1] Webhook  →  [2] Code "Parse + Resolver"  →  [3] HTTP "POST denúncia"  →  [4] HTTP "Responder"
+```
+
+> ⚠️ Os caminhos dos campos no payload do Evolution/Z-API variam por versão. Ajustar os
+> `body.data.*` no Code node conforme o JSON real que chega no Webhook (ver com 1 disparo de teste).
+
+### [1] Webhook (trigger)
+- **HTTP Method:** POST · **Path:** `linhamap-zap` · **Respond:** "Immediately" (ou "Using Respond to Webhook").
+- Configurar essa URL como webhook de mensagem recebida no Evolution/Z-API.
+
+### [2] Code node — "Parse + Resolver trecho" (JavaScript)
+```js
+// --- lookup nome da linha -> road_segment_id (ver seção 2) ---
+const SEGMENTS = {
+  "linha 57,5": { default: "11111111-1111-1111-1111-000000000006" },
+  "linha 60":   { default: "11111111-1111-1111-1111-000000000007" },
+  "linha c-60": { default: "11111111-1111-1111-1111-000000000003" },
+  "linha c-65": {
+    trechos: {
+      ponte: "11111111-1111-1111-1111-000000000001",
+      branco:"11111111-1111-1111-1111-000000000001",
+      serra: "11111111-1111-1111-1111-000000000008",
+      curva: "11111111-1111-1111-1111-000000000008",
+    },
+    default:   "11111111-1111-1111-1111-000000000001",
+  },
+  "linha c-70": { default: "11111111-1111-1111-1111-000000000002" },
+  "linha c-75": { default: "11111111-1111-1111-1111-000000000004" },
+  "linha gaúcha": { default: "11111111-1111-1111-1111-000000000005" },
+};
+
+function resolveSegment(line, ref = "") {
+  if (!line) return null;
+  let key = ("linha " + String(line)).toLowerCase()
+    .replace(/linha\s+linha/, "linha")
+    .replace(/c\s*-?\s*/, "c-").trim();
+  const seg = SEGMENTS[key];
+  if (!seg) return null;
+  if (seg.trechos) {
+    const r = ref.toLowerCase();
+    for (const kw of Object.keys(seg.trechos)) if (r.includes(kw)) return seg.trechos[kw];
+  }
+  return seg.default;
+}
+
+// --- extrai dados da mensagem do WhatsApp (AJUSTAR os paths ao Evolution) ---
+const b = $input.first().json;
+const text  = b?.data?.message?.conversation || b?.message || b?.text || "";
+const phone = (b?.data?.key?.remoteJid || b?.from || "").replace(/\D/g, "");
+const name  = b?.data?.pushName || b?.senderName || null;
+
+// heurística MVP de texto: acha o token da linha e uma referência (ponte/serra)
+const lineMatch = text.match(/\b(c\s*-?\s*\d{2,3}|gaúcha|57[.,]5|60|65|70|75)\b/i);
+const rural_line = lineMatch ? lineMatch[1] : null;
+const ref = /ponte|branco/i.test(text) ? "ponte" : (/serra|curva/i.test(text) ? "serra" : "");
+
+const road_segment_id = resolveSegment(rural_line, ref);
+
+return [{ json: {
+  ok: Boolean(road_segment_id),
+  phone,
+  reply: road_segment_id
+    ? "Recebido! Registramos sua denúncia e já avisamos os vizinhos e a Secretaria de Obras. Obrigado!"
+    : "Quase lá! Me diga em qual Linha foi (ex.: C-65) ou mande a localização aqui do Zap.",
+  payload: {
+    description: text,
+    road_segment_id,           // null => não posta (pede a linha)
+    reporter_name: name,
+    phone,
+  },
+}}];
+```
+
+### [3] HTTP Request — "POST denúncia"
+- Rodar **só se** `{{ $json.ok }}` for `true` (usar um nó **IF** antes, ou o "Execute only if" / branch).
+- **Method:** POST · **URL:** `https://linha-map.vercel.app/api/reports`
+- **Send Body:** JSON · **Body:** `{{ $json.payload }}`
+- **Headers:** `Content-Type: application/json`
+- (Sem credencial — endpoint aberto. Backend classifica categoria/severidade.)
+
+### [4] HTTP Request — "Responder no WhatsApp" (Evolution API)
+- **Method:** POST · **URL:** `{{EVOLUTION_URL}}/message/sendText/{{INSTANCE}}`
+- **Headers:** `apikey: {{EVOLUTION_API_KEY}}` (credencial criada por você)
+- **Body (JSON):** `{ "number": "{{ $json.phone }}", "text": "{{ $json.reply }}" }`
+- _Ajustar endpoint/headers ao provedor real (Evolution vs Z-API têm rotas diferentes)._
+
+### Conexões
+`Webhook → Code → IF(ok) → [true] POST denúncia → Responder` · `[false] → Responder` (pede a linha).
+
+### Teste rápido (sem WhatsApp)
+Mandar no Webhook (POST) um corpo simulando texto: `{"message":"muita lama na descida da ponte C-65"}`
+→ o Code resolve `…0001` (Ponte do Branco) → POST 201 → resposta de confirmação.
 ```
