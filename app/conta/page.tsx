@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Bell, BellOff, FileText, MapPin } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { InstallPwaButton } from "@/components/install-pwa-button";
 import { RefreshOnShow } from "@/components/refresh-on-show";
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,10 @@ export default async function ContaPage() {
           </div>
           <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
-        <LogoutButton variant="outline" />
+        <div className="flex flex-wrap items-center gap-2">
+          <InstallPwaButton />
+          <LogoutButton variant="outline" />
+        </div>
       </div>
 
       {isSecretaria && (

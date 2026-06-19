@@ -1,3 +1,4 @@
+import { InstallPwaButton } from "@/components/install-pwa-button";
 import { ReportForm } from "@/components/report/report-form";
 import { WhatsappCta } from "@/components/whatsapp-cta";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +31,7 @@ export default async function DenunciaPage({
           Relate um problema em uma linha vicinal. Sua contribuição atualiza o risco do
           trecho e ajuda a Secretaria a priorizar a manutenção.
         </p>
+        <InstallPwaButton label="Instalar o app no celular" className="mt-1 w-fit" />
       </div>
 
       <Card className="mb-6 border-primary/30 bg-primary/5">
