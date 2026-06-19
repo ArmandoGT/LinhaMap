@@ -53,6 +53,7 @@ recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a 
 - ✅ Índice de Trafegabilidade 0–100 explicável, com fatores e recomendações
 - ✅ Cadastro de denúncia colaborativa (geolocalização + foto)
 - ✅ Classificação automática da denúncia por IA (com fallback por regras)
+- ✅ **Denúncia por WhatsApp**: agente conversacional (**n8n self-hosted + WAHA**) registra a denúncia direto do Zap, com palavra-chave de ativação
 - ✅ Dashboard da Secretaria (cards, mapa de calor, filtros, exportar CSV)
 - ✅ Relatório semanal pronto para ata/ofício
 - ✅ Reprocessamento diário automático (Vercel Cron / GitHub Actions)
@@ -87,6 +88,7 @@ recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a 
 | Banco de dados | Supabase (PostgreSQL + PostGIS) — opcional; roda em modo mock sem ele |
 | IA | Anthropic Claude (multimodal) com fallback por regras |
 | Automação | Vercel Cron / GitHub Actions (cron diário) |
+| Denúncia por WhatsApp | **n8n (self-hosted)** + **WAHA** — agente que registra via `POST /api/reports` |
 | Deploy | Vercel (deploy único) |
 | Dados públicos | **Open-Meteo (chuva real, integrado)**, OpenStreetMap (geometria das linhas); SRTM/INMET preparados para integração |
 
@@ -192,6 +194,25 @@ redigido por IA, com fallback por lógica simples.
 É agendado por **Vercel Cron** (`vercel.json`) e/ou **GitHub Actions**
 ([`.github/workflows/daily-reprocess.yml`](./.github/workflows/daily-reprocess.yml)), protegido por
 `CRON_SECRET`.
+
+## 💬 Denúncia por WhatsApp (agente)
+
+Além do formulário web, o produtor pode denunciar **direto pelo WhatsApp** — o canal de menor
+fricção para quem está no campo. Um **agente conversacional** recebe a mensagem, identifica a
+linha vicinal, registra a denúncia no LinhaMap (`POST /api/reports`) e responde confirmando; a
+categoria e a severidade são preenchidas pela **mesma IA do backend**.
+
+- **Orquestração:** **n8n (self-hosted)** — sem limite de execuções.
+- **Ponte com o WhatsApp:** **WAHA** (conecta por QR, repassa as mensagens ao n8n).
+- **Ativação por palavra-chave** (`linhamap-hackathon`) para o bot **não** reagir a conversas
+  normais; **saudações** recebem um tutorial e **mensagens de grupo são ignoradas**.
+- **Score curado preservado:** em `DEMO_MODE`, denúncias (web ou WhatsApp) **não** sobrescrevem
+  o risco curado dos trechos — vários testes não desconfiguram o mapa.
+
+Fluxo: `WhatsApp → WAHA → n8n → POST /api/reports → resposta via WAHA`.
+Lista completa de mensagens aceitas e detalhes técnicos em
+[`AGENTE_WHATSAPP.md`](./Docs%20-%20MD/AGENTE_WHATSAPP.md) e
+[`docs/integracao-whatsapp-n8n.md`](./docs/integracao-whatsapp-n8n.md).
 
 ## ☁️ Deploy (Vercel)
 
