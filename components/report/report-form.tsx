@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckCircle2, LoaderCircle, MapPin, Upload } from "lucide-react";
+import { CheckCircle2, LoaderCircle, MapPin, Upload, WifiOff } from "lucide-react";
+import { toast } from "sonner";
 
 import { RiskBadge } from "@/components/risk-badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createReport } from "@/lib/api-client";
 import { CATEGORY_LABELS, SEVERITY_LABELS } from "@/lib/labels";
+import { saveOfflineReport } from "@/lib/offline";
 import {
   REPORT_CATEGORIES,
   REPORT_SEVERITIES,
@@ -67,6 +69,10 @@ export function ReportForm({
   // Mostra o atalho "Minhas denúncias" só quando há sessão (senão iria pro login).
   const [authed, setAuthed] = useState(false);
 
+  // Conexão (para o banner e o caminho offline). Inicia `true` (SSR-safe) e é
+  // sincronizado no cliente.
+  const [online, setOnline] = useState(true);
+
   useEffect(() => {
     let active = true;
     fetch("/api/me", { cache: "no-store" })
@@ -75,6 +81,17 @@ export function ReportForm({
       .catch(() => active && setAuthed(false));
     return () => {
       active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setOnline(navigator.onLine);
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+    return () => {
+      window.removeEventListener("online", sync);
+      window.removeEventListener("offline", sync);
     };
   }, []);
 
@@ -129,18 +146,40 @@ export function ReportForm({
       return;
     }
     setSubmitting(true);
+
+    const payload = {
+      reporter_name: form.reporter_name || null,
+      phone: form.phone || null,
+      road_segment_id: form.road_segment_id || null,
+      latitude: form.latitude ? Number(form.latitude) : null,
+      longitude: form.longitude ? Number(form.longitude) : null,
+      description: form.description,
+      image_url: imageData,
+      category: form.category || undefined,
+      severity: form.severity || undefined,
+    };
+
+    // Offline: guarda no dispositivo (IndexedDB). O useOfflineSync envia sozinho
+    // quando a conexão voltar.
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      try {
+        await saveOfflineReport(payload);
+        toast.success(
+          "Denúncia salva no seu celular. Vamos enviar sozinho quando a internet voltar.",
+        );
+        setForm((f) => ({ ...f, description: "", category: "", severity: "" }));
+        setImageData(null);
+        setImageName(null);
+      } catch {
+        setError("Não foi possível salvar a denúncia no dispositivo.");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     try {
-      const created = await createReport({
-        reporter_name: form.reporter_name || null,
-        phone: form.phone || null,
-        road_segment_id: form.road_segment_id || null,
-        latitude: form.latitude ? Number(form.latitude) : null,
-        longitude: form.longitude ? Number(form.longitude) : null,
-        description: form.description,
-        image_url: imageData,
-        category: form.category || undefined,
-        severity: form.severity || undefined,
-      });
+      const created = await createReport(payload);
       setResult(created);
     } catch (err) {
       setError(`Não foi possível enviar a denúncia: ${String(err)}`);
@@ -196,6 +235,18 @@ export function ReportForm({
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      {!online && (
+        <div
+          role="status"
+          className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+        >
+          <WifiOff className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            <strong>Modo Offline:</strong> suas denúncias serão salvas no dispositivo e enviadas
+            automaticamente quando houver conexão.
+          </span>
+        </div>
+      )}
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Nome do produtor ou morador">
           <Input

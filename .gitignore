@@ -10,6 +10,11 @@
 backend/.env
 frontend/.env.local
 
+# ----- PWA / Serwist (gerados no build — Vercel regera) -----
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
+
 # ----- Node / Next.js (frontend) -----
 node_modules/
 .next/

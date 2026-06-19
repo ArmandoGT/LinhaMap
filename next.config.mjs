@@ -1,3 +1,13 @@
+import withSerwistInit from "@serwist/next";
+
+// PWA / Service Worker (offline-first das denúncias). Em desenvolvimento o SW
+// fica desligado para o cache não atrapalhar o hot-reload.
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -7,4 +17,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);
