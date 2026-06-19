@@ -142,6 +142,9 @@ export class SupabaseRepository implements Repository {
   }
 
   private async recalcSegment(id: string): Promise<void> {
+    // Modo demo: não sobrescreve os valores curados (denúncia não erode o score).
+    // Alinha o recálculo do create/update/delete ao comportamento do cron (recalculateAll).
+    if (config.demoMode) return;
     const seg = await this.getSegment(id);
     if (!seg) return;
     const prev = seg.risk_level;

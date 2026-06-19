@@ -53,6 +53,8 @@ export class MockRepository implements Repository {
     return this.reports.find((r) => String(r.id) === String(id));
   }
   private recalcSegment(id: string): void {
+    // Modo demo: não sobrescreve os valores curados (denúncia não erode o score).
+    if (config.demoMode) return;
     const seg = this.findSegment(id);
     if (!seg) return;
     const prev = seg.risk_level;
