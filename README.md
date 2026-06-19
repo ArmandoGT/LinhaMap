@@ -21,8 +21,8 @@
 ## 🔗 Links de entrega
 
 - **MVP online:** **https://linha-map.vercel.app**
-- **Vídeo de pitch:** _a gravar (roteiro em [`PITCH.md`](./Docs%20-%20MD/PITCH.md))_
-- **Apresentação/slides:** _a preparar_
+- **Vídeo de pitch:** ⬜ **_colar o link aqui antes da entrega_** — roteiro pronto em [`PITCH_DETALHADO.md`](./Docs%20-%20MD/PITCH_DETALHADO.md)
+- **Apresentação/slides:** ⬜ **_colar o link aqui_**
 
 ---
 
@@ -43,6 +43,24 @@ O LinhaMap cruza **previsão de chuva (7 dias)**, **chuva acumulada (72h)**, **d
 classificando-o em 4 níveis — **Baixo, Médio, Alto, Crítico** — com até 7 dias de antecedência.
 O cálculo é **explicável** (fórmula ponderada, não caixa-preta), gerando justificativa textual e
 recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a ser **preventiva**.
+
+---
+
+## 🧪 Como testar o MVP (online, sem instalar nada)
+
+> Para a banca avaliar **direto no navegador** (computador ou celular) — **não precisa login**.
+
+1. Acesse **https://linha-map.vercel.app**.
+2. Abra o **Mapa** (`/mapa`) → clique no trecho **Ponte do Branco (C-65)** → veja o índice de
+   risco, os fatores e a **explicação** do porquê.
+3. Faça uma **denúncia** (`/denuncia`): descreva um problema, toque em **"Usar minha
+   localização"** e envie → a **IA classifica** automaticamente e mostra o resultado.
+4. (Opcional) Veja o painel da **Secretaria** (`/dashboard`): mapa de calor, trechos
+   prioritários, filtros e exportação CSV; e o **relatório semanal** (`/relatorios`).
+5. **Denúncia por WhatsApp** (diferencial): _o agente fica ligado durante a apresentação_ —
+   enviando `linhamap-hackathon <problema> na C-65`, a denúncia cai no mapa.
+
+_Contas de teste e papéis (produtor × Secretaria) em [`PAPEIS_E_CONTAS.md`](./Docs%20-%20MD/PAPEIS_E_CONTAS.md)._
 
 ---
 
@@ -278,8 +296,19 @@ escondem) e a **validação com usuário real** abaixo, e não apenas o caminho 
 
 ### Validação com usuários
 
-_Espaço para evidências de validação com produtores/Secretaria/empresa proponente — registrar aqui
-data, participante e retorno (a preencher pela equipe)._
+- **Desafio real de empresa:** o problema foi proposto pela **QUANYX Tecnologia**
+  (categoria _Empresa e Comunidade_), garantindo aderência a uma necessidade concreta de
+  Ariquemes (escoamento da produção nas linhas vicinais C-65/C-70).
+- **Feedback de orientação aplicado:** após retorno sobre a **clareza para o produtor rural**,
+  criamos a tela **`/resumo`** em linguagem leiga (situação das estradas sem o número técnico
+  0–100) e simplificamos a denúncia (telefone com máscara, localização por 1 toque) — exemplo de
+  **iteração a partir de validação**.
+- **Acessibilidade do público-alvo:** denúncia por **WhatsApp** e **PWA offline** nascem da
+  realidade do produtor/caminhoneiro sem sinal — o canal que ele **já usa**, sem instalar app.
+
+> ⬜ **A completar pela equipe antes da entrega:** print/registro de uma conversa com
+> **produtor, cooperativa ou Secretaria de Obras** (data, participante e retorno) — é a
+> evidência que mais agrega no critério _Impacto/Validação_ (20 pts).
 
 ## 🤝 Uso de Inteligência Artificial
 
@@ -287,6 +316,22 @@ Declaração completa em [`DECLARACAO_IA.md`](./Docs%20-%20MD/DECLARACAO_IA.md) 
 ferramentas usadas, finalidade, partes do projeto apoiadas e o que a equipe revisou/validou.
 
 ---
+
+## ✅ O que funciona × 🔧 O que ainda pode melhorar
+
+**Funciona hoje (no MVP online):**
+- Mapa de risco com **Índice de Trafegabilidade explicável** (fatores + justificativa textual).
+- Denúncia **web**, por **WhatsApp** (agente n8n self-hosted + WAHA) e **offline (PWA)** com auto-sync.
+- **Classificação por IA** da denúncia (Claude) com fallback por regras.
+- Dashboard da Secretaria (mapa de calor, prioridades, filtros, **CSV**) e **relatório semanal**.
+- **Chuva real** do Open-Meteo + reprocessamento diário automático; deploy online (Vercel).
+- 24 testes automatizados + CI a cada push (selo no topo).
+
+**O que ainda pode melhorar (roadmap):**
+- **Declividade** ainda curada na demo (script de topografia pronto, falta recálculo dos scores).
+- Score por **fórmula explicável**, não por modelo treinado com histórico real de incidentes.
+- Foto da denúncia em **data URL** (migrar para Supabase Storage).
+- Notificação preventiva ativa (WhatsApp/SMS de alerta) e modelo preditivo histórico.
 
 ## 🗺️ Roadmap pós-hackathon
 
