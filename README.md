@@ -21,8 +21,8 @@
 ## 🔗 Links de entrega
 
 - **MVP online:** **https://linha-map.vercel.app**
-- **Vídeo de pitch:** ⬜ **_colar o link aqui antes da entrega_** — roteiro pronto em [`PITCH_DETALHADO.md`](./Docs%20-%20MD/PITCH_DETALHADO.md)
-- **Apresentação/slides:** ⬜ **_colar o link aqui_**
+- **Vídeo de pitch:** https://youtu.be/5pwjlIJWfvU — roteiro pronto em [`PITCH_DETALHADO.md`](./Docs%20-%20MD/PITCH_DETALHADO.md)
+- **Apresentação/slides:** https://linha-map.vercel.app/apresentacao
 
 ---
 
@@ -223,7 +223,7 @@ categoria e a severidade são preenchidas pela **mesma IA do backend**.
 - **Orquestração:** **n8n (self-hosted)** — sem limite de execuções.
 - **Ponte com o WhatsApp:** **WAHA** (conecta por QR, repassa as mensagens ao n8n).
 - **Ativação por palavra-chave** (`linhamap-hackathon`) para o bot **não** reagir a conversas
-  normais; **saudações** recebem um tutorial e **mensagens de grupo são ignoradas**.
+  normais; **saudações** recebem um tutorial e **mensagens de grupo são ignoradas**. Palavra-chave usada para modelo MVP, em produção não será usada.
 - **Score curado preservado:** em `DEMO_MODE`, denúncias (web ou WhatsApp) **não** sobrescrevem
   o risco curado dos trechos — vários testes não desconfiguram o mapa.
 
@@ -306,9 +306,22 @@ escondem) e a **validação com usuário real** abaixo, e não apenas o caminho 
 - **Acessibilidade do público-alvo:** denúncia por **WhatsApp** e **PWA offline** nascem da
   realidade do produtor/caminhoneiro sem sinal — o canal que ele **já usa**, sem instalar app.
 
-> ⬜ **A completar pela equipe antes da entrega:** print/registro de uma conversa com
-> **produtor, cooperativa ou Secretaria de Obras** (data, participante e retorno) — é a
-> evidência que mais agrega no critério _Impacto/Validação_ (20 pts).
+---
+
+## ⚖️ Registros Adicionais de Validação
+
+Abaixo estão os registros que comprovam o contato direto com nosso público-alvo, evidenciando o impacto e a necessidade da ferramenta:
+
+**1. Print de Validação:**
+![Print de Validação do LinhaMap](./Docs%20-%20MD/Validação-LinhaMap.png)
+
+**2. Relato - Motorista Boiadeiro (Transporte Vivo):**
+- **Perfil:** Motorista que realiza o frete de gado de corte das fazendas nas linhas até o frigorífico.
+- **Validação:** Ele relatou que o maior problema não é apenas o caminhão atolar, mas o estresse e a perda de peso dos animais quando o veículo fica horas parado na lama esperando socorro. Ele avaliou que saber o nível de risco com dias de antecedência pelo LinhaMap permite negociar com o pecuarista o adiamento do embarque do gado, evitando perdas financeiras e maus-tratos.
+
+**3. Relato - Motorista de Distribuidora de Bebidas:**
+- **Perfil:** Motorista de caminhão que atende pequenos comércios e mercearias na zona rural.
+- **Validação:** Mencionou que frequentemente precisam retornar à base com a carga após encontrarem pontes submersas ou ladeiras intransitáveis (gastando combustível e perdendo o dia). Ele destacou que a funcionalidade de "Trajeto A→B" do LinhaMap seria excelente para planejar a rota de entrega logo de manhã, escolhendo caminhos com melhor índice de trafegabilidade.
 
 ## 🤝 Uso de Inteligência Artificial
 
