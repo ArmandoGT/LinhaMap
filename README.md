@@ -229,8 +229,7 @@ categoria e a severidade são preenchidas pela **mesma IA do backend**.
 
 Fluxo: `WhatsApp → WAHA → n8n → POST /api/reports → resposta via WAHA`.
 Lista completa de mensagens aceitas e detalhes técnicos em
-[`AGENTE_WHATSAPP.md`](./Docs%20-%20MD/AGENTE_WHATSAPP.md) e
-[`docs/integracao-whatsapp-n8n.md`](./docs/integracao-whatsapp-n8n.md).
+[`AGENTE_WHATSAPP.md`](./Docs%20-%20MD/AGENTE_WHATSAPP.md).
 
 ## ☁️ Deploy (Vercel)
 
