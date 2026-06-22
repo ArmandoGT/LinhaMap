@@ -11,20 +11,6 @@ LinhaMap (fazendo o ponto aparecer no mapa) e responde o cidadão — tudo orque
 
 ---
 
-## Como ligar e desligar
-
-O agente fica **despublicado (desligado)** por padrão para **não consumir a cota de execuções
-do n8n** (plano = 1000 execuções/mês; cada mensagem recebida — inclusive de grupo — conta 1).
-
-- **Ligar (na hora da demo):** abrir o workflow `LinhaMap` no n8n → virar o toggle **Active = ON**.
-- **Desligar:** toggle **Active = OFF**.
-- Uma demo de 10–30 min gasta poucas dezenas de execuções. **Deixar ligado o dia todo é o que esgota a cota.**
-
-**Pré-requisito no dia:** a **sessão da WAHA precisa estar conectada** (se caiu, reescanear o QR).
-Esse é o ponto que mais "solta".
-
----
-
 ## Palavra-chave (obrigatória)
 
 O agente **só age** se a mensagem **começar** com a palavra-chave exata:
@@ -43,7 +29,6 @@ Depois da palavra-chave, o agente decide entre:
 1. **Registrar** — se identificar uma **Linha** no texto → cria a denúncia e confirma.
 2. **Ensinar (ajuda)** — se for uma **saudação** ou pedido de ajuda → manda um tutorial.
 3. **Pedir a linha** — se descreveu um problema mas **sem** a linha → pede a linha.
-4. **Comandos de dono** — `pausar` / `ativar` (só do número dono).
 
 > Mensagens de **grupo** são **sempre ignoradas** (nem registram, nem respondem).
 
@@ -100,18 +85,6 @@ Linhas: C-60, C-65, C-70, C-75, Linha 60, Linha 57,5, Linha Gaúcha. Você tamb�
 |---|---|
 | `linhamap-hackathon tem um buraco enorme aqui` | "Entendi o problema! Só me diga em qual Linha foi (ex.: C-65) que eu registro. Mande: linhamap-hackathon tem um buraco enorme aqui na C-65" |
 | `linhamap-hackathon a estrada está intransitável` | idem (repete o texto + " na C-65") |
-
-### 🔒 Comandos de dono (só do número cadastrado)
-
-| Mensagem | Resultado | Resposta do bot |
-|---|---|---|
-| `linhamap-hackathon pausar` _(ou `off`, `desativar`)_ | Coloca o bot em manutenção | "Bot PAUSADO. Mande 'linhamap-hackathon ativar' para religar." |
-| `linhamap-hackathon ativar` _(ou `on`, `ligar`, `retomar`)_ | Tira da manutenção | "Bot REATIVADO! Pode denunciar normalmente." |
-
-> Enquanto **pausado**, qualquer mensagem com a palavra-chave recebe: *"O LinhaMap está em
-> manutenção no momento. Volte mais tarde."* Só o **dono** consegue reativar.
-> _(Obs.: pausar pelo Zap **silencia** mas não economiza cota — o workflow segue ativo. Para
-> economizar cota de verdade, use o toggle **Active = OFF** no n8n.)_
 
 ### 🚫 Ignoradas (nenhuma ação, nenhuma resposta)
 
