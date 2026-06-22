@@ -15,6 +15,14 @@ const nextConfig = {
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/apresentacao",
+        destination: "/apresentacao.html",
+      },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);

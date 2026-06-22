@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { LogoMark } from "@/components/brand";
+import { InstallPwaButton } from "@/components/install-pwa-button";
 import { RiskBadge } from "@/components/risk-badge";
 import { WhatsappCta } from "@/components/whatsapp-cta";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ export default async function Home() {
               </Link>
             </Button>
             <WhatsappCta label="Denunciar pelo Zap" size="lg" />
+            <InstallPwaButton size="lg" />
           </div>
 
           {/* Stats ao vivo */}
