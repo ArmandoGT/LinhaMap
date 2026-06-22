@@ -60,7 +60,7 @@ export default async function Home() {
               </Link>
             </Button>
             <WhatsappCta label="Denunciar pelo Zap" size="lg" />
-            <InstallPwaButton size="lg" alwaysVisible />
+            <InstallPwaButton size="lg" />
           </div>
 
           {/* Stats ao vivo */}
