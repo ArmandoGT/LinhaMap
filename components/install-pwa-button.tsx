@@ -15,11 +15,8 @@ interface BeforeInstallPromptEvent extends Event {
 
 /**
  * Botão "Instalar app" — sempre visível.
- *
- * - App já instalado (standalone): não renderiza nada.
- * - Chrome/Edge/Samsung (Android & desktop): clique dispara o prompt nativo.
- * - iOS/Safari: clique abre dica inline com as instruções manuais.
- * - Qualquer outro navegador: clique abre dica inline genérica.
+ * Clique dispara o prompt nativo de instalação do navegador quando disponível.
+ * Some apenas quando o app já está instalado (modo standalone).
  */
 export function InstallPwaButton({
   label = "Instalar app",
@@ -34,13 +31,9 @@ export function InstallPwaButton({
 }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
-  const [platform, setPlatform] = useState<"ios" | "other" | null>(null);
-  const [showTip, setShowTip] = useState(false);
 
   useEffect(() => {
     const nav = navigator as Navigator & { standalone?: boolean };
-
-    // Já rodando como app instalado → esconde o botão.
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       nav.standalone === true;
@@ -49,12 +42,9 @@ export function InstallPwaButton({
       return;
     }
 
-    setPlatform(/iphone|ipad|ipod/i.test(navigator.userAgent) ? "ios" : "other");
-
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
-      setShowTip(false);
     };
     const onInstalled = () => {
       setInstalled(true);
@@ -68,43 +58,24 @@ export function InstallPwaButton({
     };
   }, []);
 
-  // Único caso em que o botão some: app já instalado.
   if (installed) return null;
 
   async function handleClick() {
-    if (deferred) {
-      // Chrome/Edge: prompt nativo de instalação.
-      await deferred.prompt();
-      await deferred.userChoice;
-      setDeferred(null);
-    } else {
-      // iOS ou outros: toggle da dica inline.
-      setShowTip((v) => !v);
-    }
+    if (!deferred) return;
+    await deferred.prompt();
+    await deferred.userChoice;
+    setDeferred(null);
   }
 
-  const tipText =
-    platform === "ios"
-      ? 'No Safari, toque em Compartilhar (□↑) → "Adicionar à Tela de Início".'
-      : "Abra este site no Chrome (Android ou desktop). O botão de instalação aparecerá automaticamente.";
-
   return (
-    <div className="flex flex-col items-start gap-1.5">
-      <Button
-        onClick={handleClick}
-        size={size}
-        variant={variant}
-        className={cn(className)}
-      >
-        <Download />
-        {label}
-      </Button>
-
-      {showTip && (
-        <p className="max-w-xs rounded-md border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-md">
-          {tipText}
-        </p>
-      )}
-    </div>
+    <Button
+      onClick={handleClick}
+      size={size}
+      variant={variant}
+      className={cn(className)}
+    >
+      <Download />
+      {label}
+    </Button>
   );
 }
