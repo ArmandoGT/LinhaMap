@@ -665,13 +665,37 @@ h2{font-family:var(--head);font-weight:600;line-height:1.02;letter-spacing:-.01e
     <div class="valid">
       <div class="vrow reveal"><span class="ic">🏢</span><div class="c"><div class="t">Desafio trazido por uma empresa real</div><div class="d">A QUANYX Tecnologia submeteu o problema — aproximação direta com o setor produtivo de Ariquemes.</div></div></div>
       <div class="vrow reveal"><span class="ic">💬</span><div class="c"><div class="t">Iteração após feedback do orientador</div><div class="d">Criamos a tela <b style="color:var(--ink)">/resumo</b> em linguagem leiga depois de ouvir que a versão técnica confundia o produtor.</div></div></div>
-      <div class="vrow reveal" style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
-        <div class="c" style="flex: 1 1 250px;">
-          <div class="t">Registros Adicionais de Validação</div>
-          <div class="d">Abaixo estão os registros que comprovam o contato direto com nosso público-alvo, evidenciando o impacto e a necessidade da ferramenta.</div>
-        </div>
-        <div style="flex: 0 0 auto; max-width: 100%; width: 320px; border-radius: 8px; overflow: hidden; border: 1px solid var(--card-bd); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-          <img src="/Validação-LinhaMap.png" alt="Print de Validação do LinhaMap" style="width: 100%; height: auto; display: block;" />
+      <div class="vrow reveal" style="padding: clamp(0.8rem, 1.5vw, 1.2rem);">
+        <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; width: 100%; align-items: stretch;">
+          
+          <!-- Lado Esquerdo: Imagem -->
+          <div style="flex: 1 1 250px; display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="t" style="font-weight: 700; font-size: clamp(0.9rem, 1.4vw, 1.05rem); color: var(--ink);">1. Print de Validação</div>
+            <div class="d" style="font-size: clamp(0.75rem, 1.1vw, 0.85rem); color: var(--ink-dim); line-height: 1.35;">Validação com motorista que usa as Linhas afetadas que o LinhaMap cobre.</div>
+            <div style="flex: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--card-bd); box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2);">
+              <img src="/Validação-LinhaMap.png" alt="Print de Validação do LinhaMap" style="width: 100%; height: auto; max-height: 200px; object-fit: contain; display: block;" />
+            </div>
+          </div>
+
+          <!-- Lado Direito: Relatos -->
+          <div style="flex: 1 1 350px; display: flex; flex-direction: column; gap: 0.8rem; justify-content: center;">
+            <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 0.8rem; border: 1px solid var(--card-bd);">
+              <div class="t" style="font-weight: 700; font-size: clamp(0.85rem, 1.2vw, 0.95rem); color: var(--brand-bright); margin-bottom: 0.4rem;">2. Relato - Motorista Boiadeiro (Transporte Vivo)</div>
+              <div class="d" style="font-size: clamp(0.75rem, 1.1vw, 0.85rem); color: var(--ink-dim); line-height: 1.4;">
+                <b style="color:var(--ink)">Perfil:</b> Motorista que realiza o frete de gado de corte das fazendas nas linhas até o frigorífico.<br>
+                <b style="color:var(--ink)">Validação:</b> Ele relatou que o maior problema não é apenas o caminhão atolar, mas o estresse e a perda de peso dos animais quando o veículo fica horas parado na lama esperando socorro. Ele avaliou que saber o nível de risco com dias de antecedência pelo LinhaMap permite negociar com o pecuarista o adiamento do embarque do gado, evitando perdas financeiras e maus-tratos.
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.02); border-radius: 8px; padding: 0.8rem; border: 1px solid var(--card-bd);">
+              <div class="t" style="font-weight: 700; font-size: clamp(0.85rem, 1.2vw, 0.95rem); color: var(--brand-bright); margin-bottom: 0.4rem;">3. Relato - Motorista de Distribuidora de Bebidas</div>
+              <div class="d" style="font-size: clamp(0.75rem, 1.1vw, 0.85rem); color: var(--ink-dim); line-height: 1.4;">
+                <b style="color:var(--ink)">Perfil:</b> Motorista de caminhão que atende pequenos comércios e mercearias na zona rural.<br>
+                <b style="color:var(--ink)">Validação:</b> Mencionou que frequentemente precisam retornar à base com a carga após encontrarem pontes submersas ou ladeiras intransitáveis (gastando combustível e perdendo o dia). Ele destacou que a funcionalidade de "Trajeto A→B" do LinhaMap seria excelente para planejar a rota de entrega logo de manhã, escolhendo caminhos com melhor índice de trafegabilidade.
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
