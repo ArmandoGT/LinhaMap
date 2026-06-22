@@ -16,8 +16,6 @@ funcionalidade do produto. Abaixo, a declaração transparente.
 | Claude (Anthropic) — API multimodal | Classificação automática de denúncias por imagem/descrição (em runtime) | `POST /api/ai/classify-report` e `POST /api/reports` |
 | Claude (Anthropic) — API de texto | Geração do resumo semanal para a Secretaria (em runtime) | `/api/ai/generate-weekly-summary` e `/api/dashboard/weekly-report` |
 
-> _Atualize esta tabela caso outras ferramentas (geração de imagens, etc.) sejam usadas._
-
 ---
 
 ## 2. IA dentro do produto (em runtime)
@@ -41,8 +39,7 @@ O **Índice de Trafegabilidade** NÃO usa modelo caixa-preta: é uma **fórmula 
 - [x] Todo o código gerado por IA foi **lido, compreendido e testado** pela equipe.
 - [x] A equipe é capaz de **explicar e defender tecnicamente** cada parte da solução.
 - [x] Nenhum dado sigiloso, credencial ou chave de API foi inserido em ferramentas externas.
-- [ ] _Descrever aqui ajustes manuais relevantes feitos sobre o código gerado pela equipe._
 
 ---
 
-_Última atualização: a confirmar pela equipe antes da submissão._
+_Última atualização: 22/06/2026_
