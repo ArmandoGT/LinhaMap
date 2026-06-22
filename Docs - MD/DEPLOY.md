@@ -132,9 +132,9 @@ Acesse a URL pública e confirme:
 
 Antes da submissão, edite e commite:
 
-- [ ] `README.md` → **Equipe**, **Integrantes**, **Link do MVP online**, **Vídeo de pitch**, **Validação**.
-- [ ] `docs/DECLARACAO_IA.md` → confirmar a lista de ferramentas e os ajustes manuais.
-- [ ] `LICENSE` → nome da equipe (se desejar).
+- [x] `README.md` → **Equipe**, **Integrantes**, **Link do MVP online**, **Vídeo de pitch**, **Validação**.
+- [x] `docs/DECLARACAO_IA.md` → confirmar a lista de ferramentas e os ajustes manuais.
+- [x] `LICENSE` → nome da equipe (se desejar).
 
 ```bash
 git add README.md docs/DECLARACAO_IA.md LICENSE
@@ -146,16 +146,16 @@ git push
 
 ## 7. Checklist final do edital (Anexo I)
 
-- [ ] README com identificação (equipe, integrantes, curso, turma, categoria)
-- [ ] Descrição do problema e do público
-- [ ] Descrição da solução
-- [ ] **Link do MVP funcional online**
-- [ ] **Link do vídeo de pitch**
-- [ ] Instruções de uso/teste/acesso
-- [ ] Tecnologias e bibliotecas utilizadas
-- [ ] Declaração das ferramentas de IA
-- [ ] Evidências de validação (quando houver)
-- [ ] Observação sobre licença
+- [x] README com identificação (equipe, integrantes, curso, turma, categoria)
+- [x] Descrição do problema e do público
+- [x] Descrição da solução
+- [x] **Link do MVP funcional online**
+- [x] **Link do vídeo de pitch**
+- [x] Instruções de uso/teste/acesso
+- [x] Tecnologias e bibliotecas utilizadas
+- [x] Declaração das ferramentas de IA
+- [x] Evidências de validação (quando houver)
+- [x] Observação sobre licença
 - [ ] **Submeter o link do repositório até 19/06/2026, 23h59**
 
 ---
