@@ -21,7 +21,7 @@
 ## 🔗 Links de entrega
 
 - **MVP online:** **https://linha-map.vercel.app**
-- **Vídeo de pitch:** https://youtu.be/5pwjlIJWfvU — roteiro pronto em [`PITCH_DETALHADO.md`](./Docs%20-%20MD/PITCH_DETALHADO.md)
+- **Vídeo de pitch:** https://youtu.be/5pwjlIJWfvU
 - **Apresentação/slides:** https://linha-map.vercel.app/apresentacao
 
 ---
