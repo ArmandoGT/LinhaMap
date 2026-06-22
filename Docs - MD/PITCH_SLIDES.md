@@ -139,7 +139,7 @@ queremos evoluir é a declividade real e um modelo preditivo com histórico."
 ## Slide 13 — Validação
 **[NO SLIDE]**
 - _"Desafio real (QUANYX) · iteração após feedback → tela /resumo em linguagem leiga"_
-- ⬜ **(inserir print/foto da conversa com produtor/Secretaria)**
+- ![Print de Validação do LinhaMap](./Validação-LinhaMap.png)
 
 **[FALA]** "O problema veio de uma empresa real. E já iteramos a partir de feedback: criamos uma
 tela em linguagem simples pro produtor depois de ouvir que a versão técnica confundia."
