@@ -1,4 +1,4 @@
-# LinhaMap 🛰️🌧️🚜
+# LinhaMap
 
 > **Plataforma Preditiva de Trafegabilidade Rural para Ariquemes/RO**
 > Inteligência de dados para prevenção de bloqueios em estradas vicinais.
@@ -10,7 +10,7 @@
 
 ---
 
-## 🎓 Identificação
+## Identificação
 
 - **Curso/Turma:** Tecnologia em Análise e Desenvolvimento de Sistemas (ADS) — IFRO Campus Ariquemes
 - **Categoria:** Desafio Empresa e Comunidade
@@ -18,7 +18,7 @@
 - **Equipe:** 3 Hacketeers
 - **Integrantes:** Armando Giordani Trassi, Leandro Pires de Moraes Filho e Pedro Felipe Vieira Gouveia
 
-## 🔗 Links de entrega
+## Links de entrega
 
 - **MVP online:** **https://linha-map.vercel.app**
 - **Vídeo de pitch:** https://youtu.be/5pwjlIJWfvU
@@ -46,7 +46,7 @@ recomendações de ação. Assim, a manutenção deixa de ser reativa e passa a 
 
 ---
 
-## 🧪 Como testar o MVP (online, sem instalar nada)
+## Como testar o MVP (online, sem instalar nada)
 
 > Para a banca avaliar **direto no navegador** (computador ou celular) — **não precisa login**.
 
@@ -64,24 +64,24 @@ _Contas de teste e papéis (produtor × Secretaria) em [`PAPEIS_E_CONTAS.md`](./
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- ✅ Landing page de apresentação com estatísticas ao vivo
-- ✅ Mapa de risco interativo (Leaflet) com trechos coloridos e painel de detalhe
-- ✅ Índice de Trafegabilidade 0–100 explicável, com fatores e recomendações
-- ✅ Cadastro de denúncia colaborativa (geolocalização + foto)
-- ✅ Classificação automática da denúncia por IA (com fallback por regras)
-- ✅ **Denúncia por WhatsApp**: agente conversacional (**n8n self-hosted + WAHA**) registra a denúncia direto do Zap, com palavra-chave de ativação
-- ✅ Dashboard da Secretaria (cards, mapa de calor, filtros, exportar CSV)
-- ✅ Relatório semanal pronto para ata/ofício
-- ✅ Reprocessamento diário automático (Vercel Cron / GitHub Actions)
-- ✅ **Alertas + "seguir trecho"**: avisa quando um trecho acompanhado piora (central de notificações; e-mail/WhatsApp simulados)
-- ✅ **Melhor janela para escoar**: melhor dia dos próximos 7 para transportar a produção
-- ✅ **Ordens de serviço**: trecho crítico/denúncia → manutenção; concluir resolve denúncias e baixa o risco
-- ✅ **Consulta de trajeto A→B**: risco agregado do caminho (limitado pelo pior trecho) + melhor janela
-- ✅ API REST completa (Route Handlers)
+- Landing page de apresentação com estatísticas ao vivo
+- Mapa de risco interativo (Leaflet) com trechos coloridos e painel de detalhe
+- Índice de Trafegabilidade 0–100 explicável, com fatores e recomendações
+- Cadastro de denúncia colaborativa (geolocalização + foto)
+- Classificação automática da denúncia por IA (com fallback por regras)
+- **Denúncia por WhatsApp**: agente conversacional (**n8n self-hosted + WAHA**) registra a denúncia direto do Zap, com palavra-chave de ativação
+- Dashboard da Secretaria (cards, mapa de calor, filtros, exportar CSV)
+- Relatório semanal pronto para ata/ofício
+- Reprocessamento diário automático (Vercel Cron / GitHub Actions)
+- **Alertas + "seguir trecho"**: avisa quando um trecho acompanhado piora (central de notificações; e-mail/WhatsApp simulados)
+- **Melhor janela para escoar**: melhor dia dos próximos 7 para transportar a produção
+- **Ordens de serviço**: trecho crítico/denúncia → manutenção; concluir resolve denúncias e baixa o risco
+- **Consulta de trajeto A→B**: risco agregado do caminho (limitado pelo pior trecho) + melhor janela
+- API REST completa (Route Handlers)
 
-## 🖥️ Telas
+## Telas
 
 | Tela | Descrição |
 | --- | --- |
@@ -97,7 +97,7 @@ _Contas de teste e papéis (produtor × Secretaria) em [`PAPEIS_E_CONTAS.md`](./
 
 ---
 
-## 🧱 Stack técnica
+## Stack técnica
 
 | Camada | Tecnologias |
 | --- | --- |
@@ -132,7 +132,7 @@ database/           → schema.sql + seed.sql
 
 ---
 
-## 🚀 Como rodar
+## Como rodar
 
 ### Pré-requisitos
 - Node.js 18+
@@ -158,7 +158,7 @@ npm run verify   # checagem de paridade do núcleo (score/classificação/reposi
 
 ---
 
-## ⚙️ Variáveis de ambiente
+## Variáveis de ambiente
 
 Veja [`.env.example`](./.env.example). O sistema **funciona sem nenhuma chave** (modo mock).
 
@@ -173,7 +173,7 @@ Veja [`.env.example`](./.env.example). O sistema **funciona sem nenhuma chave** 
 | `CRON_SECRET` | Protege o endpoint do worker no cron |
 | `DEMO_MODE` | `true` congela os níveis curados (painel mostra valor armazenado; cron não sobrescreve) — útil para a apresentação |
 
-## 🗄️ Como configurar o Supabase (opcional)
+## Como configurar o Supabase (opcional)
 
 1. Crie um projeto no [Supabase](https://supabase.com).
 2. No **SQL Editor**, execute na ordem: `database/schema.sql` e depois `database/seed.sql`.
@@ -181,7 +181,7 @@ Veja [`.env.example`](./.env.example). O sistema **funciona sem nenhuma chave** 
 
 ---
 
-## 🧮 Como funciona o score de risco
+## Como funciona o score de risco
 
 Fórmula ponderada e transparente (`lib/services/scoring.ts`). Cada fator vira um sub-score 0–100,
 combinado por pesos fixos:
@@ -197,7 +197,7 @@ Faixas: **0–24 baixo · 25–49 médio · 50–74 alto · 75–100 crítico**.
 pesam mais. O sistema gera uma **explicação textual** (ex.: _"Risco crítico devido a chuva acumulada
 de 92 mm nas últimas 72h, previsão de chuva intensa e 2 relatos recentes de lama e buraco."_).
 
-## 🤖 Como funciona a classificação por IA
+## Como funciona a classificação por IA
 
 Em `lib/services/ai-classifier.ts`. Ao enviar uma denúncia, a categoria e a severidade são
 preenchidas automaticamente: com `ANTHROPIC_API_KEY`, o **Claude (multimodal)** analisa foto +
@@ -205,7 +205,7 @@ descrição; sem chave, um **fallback por palavras-chave** garante o funcionamen
 o formato `{ categoria, severidade, confianca, justificativa }`. O relatório semanal também pode ser
 redigido por IA, com fallback por lógica simples.
 
-## ⏰ Como funciona o cron diário
+## Como funciona o cron diário
 
 `POST/GET /api/worker/reprocess-daily` **atualiza a chuva real de cada trecho via Open-Meteo**
 (acumulado 72h + previsão 7d), recalcula o score de todos os trechos e registra um log.
@@ -213,7 +213,7 @@ redigido por IA, com fallback por lógica simples.
 ([`.github/workflows/daily-reprocess.yml`](./.github/workflows/daily-reprocess.yml)), protegido por
 `CRON_SECRET`.
 
-## 💬 Denúncia por WhatsApp (agente)
+## Denúncia por WhatsApp (agente)
 
 Além do formulário web, o produtor pode denunciar **direto pelo WhatsApp** — o canal de menor
 fricção para quem está no campo. Um **agente conversacional** recebe a mensagem, identifica a
@@ -231,7 +231,7 @@ Fluxo: `WhatsApp → WAHA → n8n → POST /api/reports → resposta via WAHA`.
 Lista completa de mensagens aceitas e detalhes técnicos em
 [`AGENTE_WHATSAPP.md`](./Docs%20-%20MD/AGENTE_WHATSAPP.md).
 
-## ☁️ Deploy (Vercel)
+## Deploy (Vercel)
 
 Guia completo passo a passo em **[`DEPLOY.md`](./Docs%20-%20MD/DEPLOY.md)** (GitHub + Supabase + Vercel).
 Resumo:
@@ -242,7 +242,7 @@ Resumo:
 
 ---
 
-## 🧪 Testes e validação
+## Testes e validação
 
 > Seção da disciplina **Teste de Software** (Hackathon IFRO Ariquemes 2026/1). A pergunta da
 > banca não é só _"funciona?"_, mas _"como vocês sabem que funciona?"_. Abaixo está a resposta.
@@ -315,7 +315,7 @@ A execução no GitHub Actions a cada push ou pull request mantém uma evidênci
 
 ---
 
-## ⚖️ Registros Adicionais de Validação
+## Registros Adicionais de Validação
 
 Abaixo estão os registros que comprovam o contato direto com nosso público-alvo, evidenciando o impacto e a necessidade da ferramenta:
 
@@ -337,7 +337,7 @@ ferramentas usadas, finalidade, partes do projeto apoiadas e o que a equipe revi
 
 ---
 
-## ✅ O que funciona × 🔧 O que ainda pode melhorar
+## O que funciona × O que ainda pode melhorar
 
 **Funciona hoje (no MVP online):**
 - Mapa de risco com **Índice de Trafegabilidade explicável** (fatores + justificativa textual).
@@ -367,13 +367,13 @@ ferramentas usadas, finalidade, partes do projeto apoiadas e o que a equipe revi
 - Score baseado em fórmula explicável (não em modelo treinado com histórico real)
 - Persistência completa requer configuração do Supabase (modo mock não persiste entre instâncias serverless)
 
-## 🔧 Melhorias futuras
+## Melhorias futuras
 
 - Upload de fotos para Supabase Storage (hoje em data URL no modo demo)
 - Histórico temporal do índice por trecho (séries e tendências)
 - Roteirização evitando trechos críticos
 - Painel público de transparência para a Secretaria
 
-## 📄 Licença
+## Licença
 
 [MIT](./LICENSE).
