@@ -305,6 +305,14 @@ escondem) e a **validação com usuário real** abaixo, e não apenas o caminho 
 - **Acessibilidade do público-alvo:** denúncia por **WhatsApp** e **PWA offline** nascem da
   realidade do produtor/caminhoneiro sem sinal — o canal que ele **já usa**, sem instalar app.
 
+#### Evidências de qualidade do sistema
+
+Os testes do LinhaMap foram planejados com base em técnicas de caixa-preta, especialmente a análise de valor-limite e o particionamento de equivalência. A suíte cobre caminhos felizes, entradas inválidas e valores de borda das principais regras do sistema, como as faixas do Índice de Trafegabilidade e o contrato de classificação das denúncias (BSTQB, 2023).
+
+Os testes são executados de forma automatizada, o que melhora a repetibilidade e permite identificar falhas com maior rapidez, embora a equipe ainda precise revisar os resultados e manter os casos atualizados conforme o sistema evolui (COUTINHO; NASCIMENTO, 2025).
+
+A execução no GitHub Actions a cada push ou pull request mantém uma evidência versionada da qualidade do projeto, incluindo a verificação dos tipos TypeScript e a execução da suíte automatizada (GITHUB, 2024). A documentação dos casos, resultados esperados e evidências também contribui para a rastreabilidade entre os requisitos e as validações realizadas (ISO, 2021).
+
 ---
 
 ## ⚖️ Registros Adicionais de Validação
