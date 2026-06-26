@@ -22,7 +22,7 @@
 
 - **MVP online:** **https://linha-map.vercel.app**
 - **Vídeo de pitch:** https://youtu.be/5pwjlIJWfvU
-- **Apresentação/slides:** https://linha-map.vercel.app/apresentacao
+- **Apresentação/slides Pitch 26/06/26:** https://canva.link/linha-map
 
 ---
 
